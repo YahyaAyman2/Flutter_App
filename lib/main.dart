@@ -47,7 +47,7 @@ class _MyAppState extends State<MyApp> {
                   style: TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
-                    color: Colors.red,
+                    color: Colors.pink,
                   ),
                 ),
                 SizedBox(height: 8),

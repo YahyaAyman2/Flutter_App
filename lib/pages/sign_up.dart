@@ -1,6 +1,11 @@
-import 'package:sakkeny_app/pages/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sakkeny_app/pages/Saved_List.dart';
+import 'package:sakkeny_app/pages/sign_in.dart';
+
+const Color primaryDarkGreen = Color(0xFF386B5D);
+const Color secondaryLightGreen = Color(0xFF5D9D8E);
+const Color linkColor = Color(0xFF386B5D);
 
 void main() {
   runApp(const MyApp());
@@ -11,97 +16,26 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryDarkGreen = Color(0xFF386B5D);
-    const Color secondaryLightGreen = Color(0xFF5D9D8E);
-    const Color linkColor = Color(0xFF386B5D);
-
-    return MaterialApp(
-      title: 'Sign Up Page',
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: primaryDarkGreen,
-        hintColor: primaryDarkGreen,
-        fontFamily: 'Roboto',
-        appBarTheme: const AppBarTheme(
-          backgroundColor: primaryDarkGreen,
-          elevation: 0,
-          titleTextStyle: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        textTheme: const TextTheme(
-          titleLarge: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: primaryDarkGreen,
-          ),
-          bodyMedium: TextStyle(color: Colors.black87),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 18,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0),
-            borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0),
-            borderSide: const BorderSide(
-              color: secondaryLightGreen,
-              width: 2.0,
-            ),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0),
-            borderSide: const BorderSide(color: Colors.red, width: 1.0),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0),
-            borderSide: const BorderSide(color: Colors.red, width: 2.0),
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primaryDarkGreen,
-            foregroundColor: Colors.white,
-            minimumSize: const Size(double.infinity, 55),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30.0),
-            ),
-            textStyle: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        extensions: const <ThemeExtension<dynamic>>[
-          _CustomColors(linkColor: linkColor),
-        ],
-      ),
-      home: const SignUpPage(),
+      home: SignUpPage(),
     );
   }
 }
 
-class _CustomColors extends ThemeExtension<_CustomColors> {
+class CustomColors extends ThemeExtension<CustomColors> {
   final Color linkColor;
-  const _CustomColors({required this.linkColor});
+  const CustomColors({required this.linkColor});
 
   @override
-  _CustomColors copyWith({Color? linkColor}) {
-    return _CustomColors(linkColor: linkColor ?? this.linkColor);
+  CustomColors copyWith({Color? linkColor}) {
+    return CustomColors(linkColor: linkColor ?? this.linkColor);
   }
 
   @override
-  _CustomColors lerp(_CustomColors? other, double t) {
-    if (other is! _CustomColors) return this;
-    return _CustomColors(linkColor: Color.lerp(linkColor, other.linkColor, t)!);
+  CustomColors lerp(CustomColors? other, double t) {
+    if (other is! CustomColors) return this;
+    return CustomColors(linkColor: Color.lerp(linkColor, other.linkColor, t)!);
   }
 }
 
@@ -114,11 +48,9 @@ class SignUpPage extends StatefulWidget {
 
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
-
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
@@ -134,255 +66,332 @@ class _SignUpPageState extends State<SignUpPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Processing Sign Up Data')));
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (context) => Saved()));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-final customColors = Theme.of(context).extension<_CustomColors>();
-final linkColor = customColors?.linkColor ?? const Color(0xFF386B5D);
+    // 2. تعريف الـ Theme الخاص بالصفحة دي هنا
+    final ThemeData localTheme = ThemeData(
+      primaryColor: primaryDarkGreen,
+      hintColor: primaryDarkGreen,
+      fontFamily: 'Roboto',
+      appBarTheme: const AppBarTheme(
+        backgroundColor: primaryDarkGreen,
+        elevation: 0,
+        titleTextStyle: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+      textTheme: const TextTheme(
+        titleLarge: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: primaryDarkGreen,
+        ),
+        bodyMedium: TextStyle(color: Colors.black87),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30.0),
+          borderSide: const BorderSide(color: Colors.grey, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30.0),
+          borderSide: const BorderSide(color: secondaryLightGreen, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30.0),
+          borderSide: const BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30.0),
+          borderSide: const BorderSide(color: Colors.red, width: 2.0),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryDarkGreen,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(double.infinity, 55),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30.0),
+          ),
+          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ),
+      extensions: const <ThemeExtension<dynamic>>[
+        CustomColors(linkColor: linkColor),
+      ],
+    );
 
+    return Theme(
+      data: localTheme,
+      child: Builder(
+        builder: (context) {
+          final customColors = Theme.of(context).extension<CustomColors>();
+          final currentLinkColor =
+              customColors?.linkColor ?? const Color(0xFF386B5D);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                padding: const EdgeInsets.only(
-                  top: 40,
-                  left: 30,
-                  right: 30,
-                  bottom: 40,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          return Scaffold(
+            backgroundColor: Colors.white,
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'Sign up',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    Container(
+                      padding: const EdgeInsets.only(
+                        top: 40,
+                        left: 30,
+                        right: 30,
+                        bottom: 40,
                       ),
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      'Your journey starts here',
-                      style: TextStyle(fontSize: 16, color: Colors.white70),
-                    ),
-                  ],
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.all(30.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildLabel('First Name'),
-                      _buildTextFormField(
-                        'Enter Your First Name',
-                        keyboardType: TextInputType.name,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor,
                       ),
-                      _buildLabel('Last Name'),
-                      _buildTextFormField(
-                        'Enter Your Last Name',
-                        keyboardType: TextInputType.name,
-                      ),
-                      _buildLabel('Phone Number'),
-                      _buildTextFormField(
-                        'Enter Phone Number',
-                        keyboardType: TextInputType.phone,
-                      ),
-
-                      _buildLabel('Email'),
-                      _buildTextFormField(
-                        'Enter Your Email',
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Email is required";
-                          }
-                          if (!value.contains('@')) {
-                            return "Enter a valid email";
-                          }
-                          if (!RegExp(
-                            r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+',
-                          ).hasMatch(value)) {
-                            return "Enter a valid email";
-                          }
-                          return null;
-                        },
-                      ),
-
-                      _buildLabel('Password'),
-                      _buildTextFormField(
-                        'Enter Your Password',
-                        controller: _passwordController,
-                        obscureText: !_isPasswordVisible,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isPasswordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: Colors.grey,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isPasswordVisible = !_isPasswordVisible;
-                            });
-                          },
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Password is required";
-                          }
-                          if (value.length < 6) {
-                            return "Password must be at least 6 characters";
-                          }
-                          return null;
-                        },
-                      ),
-
-                      _buildLabel('Confirm Password'),
-                      _buildTextFormField(
-                        'Enter Confirm Password',
-                        controller: _confirmPasswordController,
-                        obscureText: !_isConfirmPasswordVisible,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isConfirmPasswordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: Colors.grey,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isConfirmPasswordVisible =
-                                  !_isConfirmPasswordVisible;
-                            });
-                          },
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Confirm Password is required";
-                          }
-                          if (value != _passwordController.text) {
-                            return "Incorrect password";
-                          }
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      ElevatedButton(
-                        onPressed: _submitForm,
-                        child: const Text('Sign Up'),
-                      ),
-
-                      const SizedBox(height: 20),
-                      const Center(
-                        child: Text(
-                          'Or Register with',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          IconButton(
-                            icon: const FaIcon(
-                              FontAwesomeIcons.apple,
-                              size: 40,
-                              color: Colors.black,
+                          Text(
+                            'Sign up',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
-                            onPressed: () {
-                              print("Apple login tapped");
-                            },
                           ),
-                          const SizedBox(width: 25),
-                          IconButton(
-                            icon: const FaIcon(
-                              FontAwesomeIcons.google,
-                              size: 40,
-                              color: Colors.red,
+                          SizedBox(height: 5),
+                          Text(
+                            'Your journey starts here',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white70,
                             ),
-                            onPressed: () {
-                              print("Google login tapped");
-                            },
-                          ),
-                          const SizedBox(width: 25),
-                          IconButton(
-                            icon: const FaIcon(
-                              FontAwesomeIcons.facebookF,
-                              size: 40,
-                              color: Colors.blue,
-                            ),
-                            onPressed: () {
-                              print("Facebook login tapped");
-                            },
                           ),
                         ],
                       ),
+                    ),
 
-                      const SizedBox(height: 25),
-
-                      Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                    Padding(
+                      padding: const EdgeInsets.all(30.0),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Already have an account? ',
-                              style: TextStyle(color: Colors.black87),
+                            _buildLabel(context, 'First Name'),
+                            _buildTextFormField(
+                              context,
+                              'Enter Your First Name',
+                              keyboardType: TextInputType.name,
                             ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const SignIn(),
-                                  ),
-                                );
+                            _buildLabel(context, 'Last Name'),
+                            _buildTextFormField(
+                              context,
+                              'Enter Your Last Name',
+                              keyboardType: TextInputType.name,
+                            ),
+                            _buildLabel(context, 'Phone Number'),
+                            _buildTextFormField(
+                              context,
+                              'Enter Phone Number',
+                              keyboardType: TextInputType.phone,
+                            ),
+
+                            _buildLabel(context, 'Email'),
+                            _buildTextFormField(
+                              context,
+                              'Enter Your Email',
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Email is required";
+                                }
+                                if (!value.contains('@')) {
+                                  return "Enter a valid email";
+                                }
+                                return null;
                               },
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: Text(
-                                'Log in',
-                                style: TextStyle(
-                                  color: customColors?.linkColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                            ),
+
+                            _buildLabel(context, 'Password'),
+                            _buildTextFormField(
+                              context,
+                              'Enter Your Password',
+                              controller: _passwordController,
+                              obscureText: !_isPasswordVisible,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.grey,
                                 ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Password is required";
+                                }
+                                if (value.length < 6) {
+                                  return "Password must be at least 6 characters";
+                                }
+                                return null;
+                              },
+                            ),
+
+                            _buildLabel(context, 'Confirm Password'),
+                            _buildTextFormField(
+                              context,
+                              'Enter Confirm Password',
+                              controller: _confirmPasswordController,
+                              obscureText: !_isConfirmPasswordVisible,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isConfirmPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isConfirmPasswordVisible =
+                                        !_isConfirmPasswordVisible;
+                                  });
+                                },
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Confirm Password is required";
+                                }
+                                if (value != _passwordController.text) {
+                                  return "Incorrect password";
+                                }
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 30),
+
+                            ElevatedButton(
+                              onPressed: _submitForm,
+                              child: const Text('Sign Up'),
+                            ),
+
+                            const SizedBox(height: 20),
+                            const Center(
+                              child: Text(
+                                'Or Register with',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  icon: const FaIcon(
+                                    FontAwesomeIcons.apple,
+                                    size: 40,
+                                    color: Colors.black,
+                                  ),
+                                  onPressed: () {
+                                    print("Apple login tapped");
+                                  },
+                                ),
+                                const SizedBox(width: 25),
+                                IconButton(
+                                  icon: const FaIcon(
+                                    FontAwesomeIcons.google,
+                                    size: 40,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    print("Google login tapped");
+                                  },
+                                ),
+                                const SizedBox(width: 25),
+                                IconButton(
+                                  icon: const FaIcon(
+                                    FontAwesomeIcons.facebookF,
+                                    size: 40,
+                                    color: Colors.blue,
+                                  ),
+                                  onPressed: () {
+                                    print("Facebook login tapped");
+                                  },
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 25),
+
+                            Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    'Already have an account? ',
+                                    style: TextStyle(color: Colors.black87),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => const SignIn(),
+                                        ),
+                                      );
+                                    },
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: Text(
+                                      'Log in',
+                                      style: TextStyle(
+                                        color: currentLinkColor,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildLabel(String text) {
+  Widget _buildLabel(BuildContext context, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0, top: 15.0),
       child: Text(
@@ -396,6 +405,7 @@ final linkColor = customColors?.linkColor ?? const Color(0xFF386B5D);
   }
 
   Widget _buildTextFormField(
+    BuildContext context,
     String hintText, {
     TextEditingController? controller,
     TextInputType keyboardType = TextInputType.text,

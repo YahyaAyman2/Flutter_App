@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sakkeny_app/pages/HomePage.dart';
+import 'package:sakkeny_app/pages/MessagesPage.dart';
+import 'package:sakkeny_app/pages/profile.dart';
 
 // --- CUSTOM COLORS AND THEME EXTENSION ---
 
@@ -60,8 +63,8 @@ class MainScreenSaved extends StatefulWidget {
 }
 
 class _MainScreenSavedState extends State<MainScreenSaved> {
-  // Index 1 corresponds to 'Wishlists', matching the design.
-  int _selectedIndex = 1;
+  // Index 2 corresponds to 'Wishlists', matching the design.
+  int _selectedIndex = 2;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -70,11 +73,11 @@ class _MainScreenSavedState extends State<MainScreenSaved> {
   }
 
   final List<Widget> _pages = [
-    const Center(child: Text('Home Page')),
-    const Center(child: Text('Search Page')),
+    const HomePage(),
+    const HomePage(),
     const SavedPage(),
-    const Center(child: Text('Messages Page')),
-    const Center(child: Text('Profile Page')),
+    const MessagesPage(),
+    ProfileScreen(),
   ];
 
   @override

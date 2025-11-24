@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sakkeny_app/pages/HomePage.dart';
+import 'package:sakkeny_app/pages/sign_up.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -7,7 +9,6 @@ class SignIn extends StatefulWidget {
   @override
   State<SignIn> createState() => _SignInState();
 }
-
 
 class _SignInState extends State<SignIn> {
   TextEditingController emailController = TextEditingController();
@@ -17,7 +18,7 @@ class _SignInState extends State<SignIn> {
 
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return Scaffold(
       body: Stack(
         children: [
           // Green background
@@ -222,6 +223,11 @@ class _SignInState extends State<SignIn> {
                                 "${emailController.text} ${passwordController.text}",
                               );
                             }
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const HomePage(),
+                              ),
+                            );
                           },
 
                           style: ElevatedButton.styleFrom(
@@ -305,7 +311,13 @@ class _SignInState extends State<SignIn> {
                             style: TextStyle(color: Colors.grey, fontSize: 16),
                           ),
                           TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const SignUpPage(),
+                                ),
+                              );
+                            },
                             child: const Text(
                               "Sign up",
                               style: TextStyle(

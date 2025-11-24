@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sakkeny_app/pages/FilterPage.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -116,7 +117,14 @@ class HomePage extends StatelessWidget {
                           color: Color(0xFFF2F2F2),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.tune, color: Colors.grey),
+                        child: IconButton(
+                          icon: const Icon(Icons.filter_list, color: Colors.black), onPressed:() 
+                          {  Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => const FilterPage(),
+                                        ),
+                                      ); },
+                          ),
                       ),
                     ],
                   ),
@@ -173,22 +181,7 @@ class HomePage extends StatelessWidget {
         ),
       ),
 
-      // Bottom Navigation
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        selectedItemColor: const Color(0xFF276152),
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-          BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Messages'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_border), label: 'Saved'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline), label: 'Profile'),
-        ],
-      ),
+     
     );
   }
 }

@@ -44,7 +44,6 @@ class Saved extends StatelessWidget {
         primaryColor: primaryDarkGreen,
         hintColor: primaryDarkGreen,
         fontFamily: 'Roboto',
-        // Minimal theme definition needed for Wishlist page
         extensions: const <ThemeExtension<dynamic>>[
           _CustomColors(linkColor: linkColor),
         ],
@@ -63,8 +62,7 @@ class MainScreenSaved extends StatefulWidget {
 }
 
 class _MainScreenSavedState extends State<MainScreenSaved> {
-  // Index 2 corresponds to 'Wishlists', matching the design.
-  int _selectedIndex = 2;
+  int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -135,7 +133,7 @@ class SavedPage extends StatelessWidget {
               // Content Grid (The 4 squares)
               SizedBox(
                 height:
-                    250, // Fixed height for the grid area to keep aspect ratio
+                    250, 
                 child: Row(
                   children: [
                     // Column for the two left items
@@ -206,7 +204,7 @@ class SavedPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: isImage
             ? Colors.transparent
-            : Colors.grey.shade600, // Dark grey background for placeholders
+            : Colors.grey.shade600,
         borderRadius: BorderRadius.circular(10),
       ),
       child: isImage

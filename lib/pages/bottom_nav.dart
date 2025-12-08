@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sakkeny_app/pages/HomePage.dart';
 import 'package:sakkeny_app/pages/MessagesPage.dart';
+import 'package:sakkeny_app/pages/My%20Profile/profile.dart';
 import 'package:sakkeny_app/pages/Saved_List.dart';
-import 'package:sakkeny_app/pages/profile.dart';
+import 'package:sakkeny_app/pages/SearchPage.dart';
 
 class Navigation extends StatefulWidget {
 
@@ -22,8 +23,7 @@ class _navigation extends State<Navigation> {
 
   final List<Widget> _pages = [
      HomePage(),
-     HomePage(),
-    //  PropertySearchPage(widget.properties),
+      PropertySearchPage(properties: []),
    const SavedPage(),
     const MessagesPage(),
     ProfileScreen(),

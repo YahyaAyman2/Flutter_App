@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sakkeny_app/pages/splash_screen.dart';
+import 'package:sakkeny_app/pages/Startup%20pages/splash_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -17,6 +17,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Saknni App', home:  SplashScreen());
+      title: 'Saknni App', home:  SplashScreen()
+      );
   }
 }

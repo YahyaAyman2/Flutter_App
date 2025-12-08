@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sakkeny_app/pages/Settings.dart';
-import 'package:sakkeny_app/pages/sign_in.dart';
+import 'package:sakkeny_app/pages/My%20Profile/MyAccount.dart';
+import 'package:sakkeny_app/pages/My%20Profile/Settings.dart';
+import 'package:sakkeny_app/pages/Startup%20pages/sign_in.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -17,23 +18,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.symmetric(vertical: 30.0, horizontal: 18.0),
           child: Column(
             children: [
-             
               CircleAvatar(
                 radius: 44,
-                backgroundImage: NetworkImage(
-                    'https://i.pravatar.cc/150?img=3'),
+                backgroundImage: AssetImage('assets/images/U.jpg'
+                ),
               ),
               SizedBox(height: 14),
 
-             
               Text(
                 "Arlene McCoy",
                 style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black87),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
               ),
               SizedBox(height: 6),
 
-              
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
@@ -51,14 +52,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               SizedBox(height: 30),
 
-              
               Expanded(
                 child: ListView(
                   children: [
                     buildMenuItem(
                       icon: Icons.person_outline,
                       text: "My Account",
-                      iconColor: Colors.deepPurple[100]!,
+                      iconColor:Colors.grey,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -69,18 +69,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     buildMenuItem(
                       icon: Icons.notifications_outlined,
                       text: "Notifications",
-                      iconColor: Colors.deepPurple[100]!,
+                      iconColor:Colors.grey,
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => NotificationsPage()),
+                          MaterialPageRoute(
+                            builder: (_) => NotificationsPage(),
+                          ),
                         );
                       },
                     ),
                     buildMenuItem(
                       icon: Icons.headset_mic_outlined,
                       text: "Support",
-                      iconColor: Colors.deepPurple[100]!,
+                      iconColor:Colors.grey,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -91,9 +93,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     buildMenuItem(
                       icon: Icons.settings_outlined,
                       text: "Settings",
-                      iconColor: Colors.deepPurple[100]!,
-                      onTap: () 
-                      {
+                      iconColor:Colors.grey,
+                      onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => SettingsPage()),
@@ -106,7 +107,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       iconColor: Colors.red,
                       textColor: Colors.red,
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => SignIn()));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => SignIn()),
+                        );
                       },
                     ),
                   ],
@@ -128,6 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 4),
+      color: Colors.white,
       elevation: 0,
       child: ListTile(
         leading: Icon(icon, color: iconColor),
@@ -138,26 +143,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: textColor ?? Colors.black87,
           ),
         ),
+         trailing: const Icon(
+        Icons.keyboard_arrow_right,
+        size: 22,
+        color: Colors.grey,
+         ),
         onTap: onTap,
       ),
     );
   }
 }
 // Simple placeholder page for "My Account" navigation target
-class MyAccountPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('My Account'),
-      ),
-      body: Center(child: Text('My Account Page')),
-    );
-  }
-}
+
 class NotificationsPage extends StatelessWidget {
   final Color primary = Color(0xFF1B3C2E);
-  final Color accent = Color(0xFFD2B48C);
+  final Color accent = Color(0xFF1B3C2E);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -208,7 +208,11 @@ class NotificationsPage extends StatelessWidget {
   }
 
   Widget _buildNotification(
-      String title, String subtitle, String time, Color iconColor) {
+    String title,
+    String subtitle,
+    String time,
+    Color iconColor,
+  ) {
     return Container(
       padding: EdgeInsets.all(16),
       margin: EdgeInsets.only(bottom: 10),
@@ -228,9 +232,10 @@ class NotificationsPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 4),
                 Text(subtitle, style: TextStyle(color: Colors.black54)),
               ],
@@ -242,9 +247,10 @@ class NotificationsPage extends StatelessWidget {
     );
   }
 }
+
 class SupportPage extends StatelessWidget {
   final Color primary = Color(0xFF1B3C2E);
-  final Color accent = Color(0xFFD2B48C); 
+  final Color accent = Color(0xFF1B3C2E);
 
   @override
   Widget build(BuildContext context) {
@@ -284,12 +290,18 @@ class SupportPage extends StatelessWidget {
           ),
 
           SizedBox(height: 20),
-          _buildFAQ("How do I change my password?",
-              "Go to menu → Profile → Change Password."),
-          _buildFAQ("How to change my profile status?",
-              "Open Profile → Edit Status → Save."),
-          _buildFAQ("How to export contacts?",
-              "Open Settings → Export → Choose format."),
+          _buildFAQ(
+            "How do I change my password?",
+            "Go to menu → Profile → Change Password.",
+          ),
+          _buildFAQ(
+            "How to change my profile status?",
+            "Open Profile → Edit Status → Save.",
+          ),
+          _buildFAQ(
+            "How to export contacts?",
+            "Open Settings → Export → Choose format.",
+          ),
         ],
       ),
     );
@@ -310,10 +322,8 @@ class SupportPage extends StatelessWidget {
         Padding(
           padding: EdgeInsets.all(12),
           child: Text(a, style: TextStyle(color: Colors.black54)),
-        )
+        ),
       ],
     );
   }
 }
-
-

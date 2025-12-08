@@ -38,6 +38,7 @@ dependencies:
   flutter_svg: ^2.1.1
   font_awesome_flutter : ^10.5.0
   cupertino_icons: ^1.0.8
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:

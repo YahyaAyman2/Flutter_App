@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sakkeny_app/models/cards.dart';
 import 'package:sakkeny_app/pages/AddApartmentPage.dart';
 import 'package:sakkeny_app/pages/FilterPage.dart';
+import 'package:sakkeny_app/pages/My%20Profile/profile.dart';
 import 'package:sakkeny_app/pages/SearchPage.dart';
-import 'package:sakkeny_app/pages/profile.dart';
 import 'package:sakkeny_app/pages/property.dart';
 
 class HomePage extends StatelessWidget {

@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:sakkeny_app/pages/HomePage.dart';
 import 'package:sakkeny_app/pages/MessagesPage.dart';
-import 'package:sakkeny_app/pages/profile.dart';
+import 'package:sakkeny_app/pages/My%20Profile/profile.dart';
+import 'package:sakkeny_app/pages/property.dart';
 
-// --- CUSTOM COLORS AND THEME EXTENSION ---
-
-// Define custom color palette based on the image provided
 const Color primaryDarkGreen = Color(0xFF386B5D);
-const Color secondaryLightGreen = Color(0xFF5D9D8E);
 const Color linkColor = Color(0xFF386B5D);
 
-// A ThemeExtension to hold custom properties (included for completeness)
+// --- CUSTOM COLORS AND THEME EXTENSION ---
 class _CustomColors extends ThemeExtension<_CustomColors> {
   final Color linkColor;
   const _CustomColors({required this.linkColor});
@@ -27,7 +24,7 @@ class _CustomColors extends ThemeExtension<_CustomColors> {
   }
 }
 
-// --- MAIN APPLICATION SETUP for testing the Saved Page ---
+// --- MAIN APPLICATION SETUP  ---
 void main() {
   runApp(const Saved());
 }
@@ -71,8 +68,9 @@ class _MainScreenSavedState extends State<MainScreenSaved> {
   }
 
   final List<Widget> _pages = [
-     HomePage(),
-HomePage(),    const SavedPage(),
+    HomePage(),
+    HomePage(),
+    const SavedPage(),
     const MessagesPage(),
     ProfileScreen(),
   ];
@@ -96,24 +94,94 @@ HomePage(),    const SavedPage(),
           ),
         ],
         currentIndex: _selectedIndex,
-        // Using the defined primary color for the selected item
         selectedItemColor: primaryDarkGreen,
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed, // Necessary for 5 items
+        type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
       ),
     );
   }
 }
 
-// --- SAVED PAGE IMPLEMENTATION ---
+
+// --- SAVED PAGE IMPLEMENTATION  ---
+
+final List<Map<String, dynamic>> staticSavedProperties = [
+  {
+    'id': 's1',
+    'title': 'Modern Apartment',
+    'location': 'Cairo, Nasr City',
+    'price': '15,000',
+    'image': 'assets/images/p1.jpg', 
+    'description': 'A beautiful, fully furnished apartment ready for rent.',
+    'isWifi': true,
+    'Livingroom': 1,
+    'bedroom': 2,
+    'bathroom': 1,
+    'balcony': 1,
+    'kitchen': 1,
+    'rating': 4.5,
+    'reviews': 50,
+  },
+  {
+    'id': 's2',
+    'title': 'Luxury Penthouse',
+    'location': 'New Cairo, 5th Sett.',
+    'price': '50,000',
+    'image': 'assets/images/p2.jpg', 
+    'description': 'Luxury unit with panoramic city view and private terrace.',
+    'isWifi': true,
+    'Livingroom': 2,
+    'bedroom': 3,
+    'bathroom': 3,
+    'balcony': 1,
+    'kitchen': 1,
+    'rating': 4.9,
+    'reviews': 120,
+  },
+  {
+    'id': 's3',
+    'title': 'Cozy Studio',
+    'location': 'Maadi, Degla',
+    'price': '8,000',
+    'image': 'assets/images/p3.jpg', 
+    'description': 'Small but cozy studio apartment perfect for students.',
+    'isWifi': false,
+    'Livingroom': 1,
+    'bedroom': 1,
+    'bathroom': 1,
+    'balcony': 0,
+    'kitchen': 1,
+    'rating': 3.8,
+    'reviews': 30,
+  },
+  {
+    'id': 's4',
+    'title': 'Family Home',
+    'location': '6th of October',
+    'price': '22,000',
+    'image': 'assets/images/p4.jpg', 
+    'description': 'A large family home with a garden in a secure compound.',
+    'isWifi': true,
+    'Livingroom': 1,
+    'bedroom': 4,
+    'bathroom': 2,
+    'balcony': 2,
+    'kitchen': 1,
+    'rating': 4.7,
+    'reviews': 88,
+  },
+];
+
 
 class SavedPage extends StatelessWidget {
   const SavedPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final mySavedList = staticSavedProperties;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -129,52 +197,57 @@ class SavedPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Content Grid (The 4 squares)
-              SizedBox(
-                height:
-                    250, 
-                child: Row(
-                  children: [
-                    // Column for the two left items
-                    Expanded(
-                      child: Column(
-                        children: [
-                          // Top Left Item (Image)
-                          Expanded(
-                            child: _buildWishlistItem(
-                              context,
-                              imageUrl:
-                                  'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80', // Placeholder URL
-                              isImage: true,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          // Bottom Left Item (Placeholder)
-                          Expanded(child: _buildWishlistItem(context)),
-                        ],
+              Expanded(
+                child: mySavedList.isEmpty
+                    ? Center(
+                        child: Text(
+                          "No saved properties yet.",
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                        ),
+                      )
+                    : GridView.builder(
+                        itemCount: mySavedList.length,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, 
+                          childAspectRatio: 0.75, 
+                          crossAxisSpacing: 15,
+                          mainAxisSpacing: 15,
+                        ),
+                        itemBuilder: (context, index) {
+                          final propertyData = mySavedList[index];
+                          
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PropertyDetailsPage(
+                                    price: propertyData['price']!,
+                                    title: propertyData['title']!,
+                                    location: propertyData['location']!,
+                                    image: propertyData['image']!, 
+                                    description: propertyData['description']!,
+                                    isWifi: propertyData['isWifi']!,
+                                    Livingroom: propertyData['Livingroom']!,
+                                    bedroom: propertyData['bedroom']!,
+                                    bathroom: propertyData['bathroom']!,
+                                    balcony: propertyData['balcony']!,
+                                    kitchen: propertyData['kitchen']!,
+                                    rating: propertyData['rating']!.toDouble(),
+                                    reviews: propertyData['reviews']!,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: _buildSavedItemCard(propertyData),
+                          );
+                        },
                       ),
-                    ),
-                    const SizedBox(width: 10),
-
-                    // Column for the two right items
-                    Expanded(
-                      child: Column(
-                        children: [
-                          // Top Right Item (Placeholder)
-                          Expanded(child: _buildWishlistItem(context)),
-                          const SizedBox(height: 10),
-                          // Bottom Right Item (Placeholder)
-                          Expanded(child: _buildWishlistItem(context)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
               ),
-
+              
               const SizedBox(height: 15),
 
-              // Recently viewed details
+              // Recently viewed details (Remain as is)
               const Text(
                 'Recently viewed',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -184,7 +257,6 @@ class SavedPage extends StatelessWidget {
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
 
-              // Placeholder for the rest of the content (empty space)
               const Spacer(),
             ],
           ),
@@ -193,34 +265,84 @@ class SavedPage extends StatelessWidget {
     );
   }
 
-  // Helper widget for a single saved grid item (image or placeholder)
-  Widget _buildWishlistItem(
-    BuildContext context, {
-    String? imageUrl,
-    bool isImage = false,
-  }) {
+  // Helper widget for a single saved grid item
+  Widget _buildSavedItemCard(Map<String, dynamic> propertyData) {
     return Container(
       decoration: BoxDecoration(
-        color: isImage
-            ? Colors.transparent
-            : Colors.grey.shade600,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      child: isImage
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                imageUrl!,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+              child: Image.asset(
+                propertyData['image']!,
+                width: double.infinity,
                 fit: BoxFit.cover,
-                // Fallback in case the image fails to load
                 errorBuilder: (context, error, stackTrace) => Container(
-                  color: Colors.grey.shade400,
+                  color: Colors.grey.shade300,
                   alignment: Alignment.center,
-                  child: const Icon(Icons.broken_image, color: Colors.white),
+                  child: const Icon(Icons.broken_image, size: 40),
                 ),
               ),
-            )
-          : null,
+            ),
+          ),
+          
+          // المعلومات تحت الصورة
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  propertyData['title']!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${propertyData['price']!} EGP',
+                  style: const TextStyle(
+                    color: Color(0xFF386B5D),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on, size: 12, color: Colors.grey),
+                    const SizedBox(width: 2),
+                    Expanded(
+                      child: Text(
+                        propertyData['location']!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

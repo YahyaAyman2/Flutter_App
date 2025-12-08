@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sakkeny_app/pages/MessagesPage.dart';
+import 'package:sakkeny_app/pages/Payment%20Screens/review_and_continue_screen.dart';
 
 class PropertyDetailsPage extends StatefulWidget {
   final String price;
@@ -14,19 +16,21 @@ class PropertyDetailsPage extends StatefulWidget {
   final int kitchen;
   final double rating;
   final int reviews;
+
   const PropertyDetailsPage({
     Key? key,
     required this.price,
     required this.title,
     required this.location,
-    required this.image, required this.description,
+    required this.image,
+    required this.description,
     required this.isWifi,
-    required this.Livingroom, 
-    required this.bedroom, 
-    required this.bathroom, 
-    required this.balcony, 
-    required this.kitchen, 
-    required this.rating, 
+    required this.Livingroom,
+    required this.bedroom,
+    required this.bathroom,
+    required this.balcony,
+    required this.kitchen,
+    required this.rating,
     required this.reviews,
   }) : super(key: key);
 
@@ -36,8 +40,14 @@ class PropertyDetailsPage extends StatefulWidget {
 
 
 class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
- bool _isFavorite = false; 
- // Example favorite status
+  bool _isFavorite = false; 
+
+  @override
+  void initState() {
+    super.initState();
+  }
+  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,14 +97,14 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context), 
             icon: const Icon(Icons.arrow_back),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
-          Text(
+          const Text(
             'Property Details',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -111,7 +121,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   }
 
   Widget _buildPropertyImage() {
-   
+    
     return Stack(
       children: [
         Container(
@@ -131,6 +141,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
+                  // استخدام Image.asset
                   child: Image.asset(widget.image, fit: BoxFit.cover)
                 ),
               );
@@ -147,8 +158,8 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-          'EGP ${widget.price}/Month',     
-           style: const TextStyle(
+              'EGP ${widget.price}/Month',    
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -198,10 +209,10 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
               ),
               IconButton( 
                 icon: Icon(
-        _isFavorite ? Icons.favorite : Icons.favorite_border,
-        color: _isFavorite ?Color(0xFF276152) : Colors.grey,
-         size: 30,
-                       ),
+                  _isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: _isFavorite ? const Color(0xFF276152) : Colors.grey,
+                  size: 30,
+                ),
                 onPressed: () => setState(() {
                   _isFavorite = !_isFavorite;
                 }),
@@ -299,7 +310,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 child: _buildAmenityItem(Icons.weekend_outlined , '${widget.Livingroom} \n livingroom'),
               ),
               Expanded(
-                child: _buildAmenityItem(Icons.bathroom_outlined, '${widget.bathroom}  Bathroom'),
+                child: _buildAmenityItem(Icons.bathroom_outlined, '${widget.bathroom} \n Bathroom'),
               ),
             ],
           ),
@@ -313,7 +324,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 child: _buildAmenityItem(Icons.kitchen_outlined, '${widget.kitchen} \n kitchen'),
               ),
               Expanded(
-                child: _buildAmenityItem(Icons.balcony_outlined, '${widget.balcony} \n  balcony'),
+                child: _buildAmenityItem(Icons.balcony_outlined, '${widget.balcony} \n balcony'),
               ),
             ],
           ),
@@ -367,9 +378,11 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         children: [
           Expanded(
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (context) => const MessagesPage()));},
               style: ElevatedButton.styleFrom(
-                backgroundColor:Color(0xFF276152),
+                backgroundColor:const Color(0xFF276152),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -389,9 +402,11 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (context) => const ReviewAndContinueScreen()));},
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF276152),
+                backgroundColor: const Color(0xFF276152),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(

@@ -1,4 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:sakkeny_app/pages/HomePage.dart';
+
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: const FilterPage(),
+    );
+  }
+}
+
 class FilterPage extends StatefulWidget {
   const FilterPage({Key? key}) : super(key: key);
 
@@ -11,6 +30,7 @@ class _FilterPageState extends State<FilterPage> {
   String selectedPropertyType = 'Apartment';
   int selectedBedroom = 3;
   int selectedBathroom = 2;
+
   Map<String, bool> amenities = {
     'Air Conditioning': true,
     'In-unit Laundry': true,
@@ -35,12 +55,7 @@ class _FilterPageState extends State<FilterPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 10,
-              )
-            ],
+            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
           ),
           child: SingleChildScrollView(
             child: Column(
@@ -56,7 +71,10 @@ class _FilterPageState extends State<FilterPage> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
+
+                // PRICE RANGE
                 const Text(
                   'Price Range',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -77,7 +95,10 @@ class _FilterPageState extends State<FilterPage> {
                     Text('#${_priceRange.end.toInt()}'),
                   ],
                 ),
+
                 const SizedBox(height: 20),
+
+                // PROPERTY TYPE
                 const Text(
                   'Property Type',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -92,22 +113,48 @@ class _FilterPageState extends State<FilterPage> {
                     _typeChip('Villa'),
                   ],
                 ),
+
                 const SizedBox(height: 20),
-                const Text('Bedroom', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+
+                // BEDROOM
+                const Text('Bedroom',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 10,
-                  children: List.generate(5, (i) => _numberChip(i + 1, selectedBedroom, (v) => setState(() => selectedBedroom = v))),
+                  children: List.generate(
+                    5,
+                    (i) => _numberChip(
+                      i + 1,
+                      selectedBedroom,
+                      (v) => setState(() => selectedBedroom = v),
+                    ),
+                  ),
                 ),
+
                 const SizedBox(height: 20),
-                const Text('Bathroom', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+
+                // BATHROOM
+                const Text('Bathroom',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 10,
-                  children: List.generate(5, (i) => _numberChip(i + 1, selectedBathroom, (v) => setState(() => selectedBathroom = v))),
+                  children: List.generate(
+                    5,
+                    (i) => _numberChip(
+                      i + 1,
+                      selectedBathroom,
+                      (v) => setState(() => selectedBathroom = v),
+                    ),
+                  ),
                 ),
+
                 const SizedBox(height: 20),
-                const Text('Amenities', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+
+                // AMENITIES
+                const Text('Amenities',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Column(
                   children: amenities.keys.map((key) {
@@ -120,40 +167,56 @@ class _FilterPageState extends State<FilterPage> {
                     );
                   }).toList(),
                 ),
+
                 const SizedBox(height: 20),
+
+                // BUTTONS
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // CLEAR FILTERS
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () {
-                        // Clear filters action
                         setState(() {
                           _priceRange = const RangeValues(100000, 6000000);
                           selectedPropertyType = 'Apartment';
                           selectedBedroom = 3;
                           selectedBathroom = 2;
-                          amenities.updateAll((key, value) => true == false);
+                          amenities.updateAll((key, value) => false);
                         });
                       },
-                      child: const Text('Clear Filters', style: TextStyle(color: Colors.white)),
+                      child: const Text('Clear Filters'),
                     ),
+
+                    // SHOW RESULTS
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: () {},
-                      child: const Text('Show Results', style: TextStyle(color: Colors.white)),
-                    )
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>  HomePage(),
+                          ),
+                        );
+                      },
+                      child: const Text('Show Results',
+                          style: TextStyle(color: Colors.white)),
+                    ),
                   ],
-                )
+                ),
               ],
             ),
           ),
@@ -167,7 +230,10 @@ class _FilterPageState extends State<FilterPage> {
     return ChoiceChip(
       showCheckmark: true,
       checkmarkColor: Colors.white,
-      label: Text(label, style: TextStyle(color: selected ? Colors.white : Colors.black)),
+      label: Text(
+        label,
+        style: TextStyle(color: selected ? Colors.white : Colors.black),
+      ),
       selected: selected,
       selectedColor: primaryColor,
       backgroundColor: Colors.grey.shade200,
@@ -180,7 +246,10 @@ class _FilterPageState extends State<FilterPage> {
     return ChoiceChip(
       showCheckmark: true,
       checkmarkColor: Colors.white,
-      label: Text(number.toString(), style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
+      label: Text(
+        number.toString(),
+        style: TextStyle(color: isSelected ? Colors.white : Colors.black),
+      ),
       selected: isSelected,
       selectedColor: primaryColor,
       backgroundColor: Colors.grey.shade200,
@@ -188,3 +257,4 @@ class _FilterPageState extends State<FilterPage> {
     );
   }
 }
+

@@ -1,7 +1,7 @@
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:flutter/material.dart';
-import 'package:sakkeny_app/pages/sign_up.dart';
+import 'package:sakkeny_app/pages/Startup%20pages/sign_in.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({Key? key}) : super(key: key);
@@ -133,7 +133,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       } else {
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
-                            builder: (context) => const SignUpPage(),
+                            builder: (context) => const SignIn(),
                           ),
                         );
                       }

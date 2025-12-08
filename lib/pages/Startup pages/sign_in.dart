@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:sakkeny_app/pages/HomePage.dart';
-import 'package:sakkeny_app/pages/sign_up.dart';
+import 'package:sakkeny_app/pages/Startup%20pages/Forget_Pass.dart';
+import 'package:sakkeny_app/pages/Startup%20pages/sign_up.dart';
+import 'package:sakkeny_app/pages/bottom_nav.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -50,7 +51,7 @@ class _SignInState extends State<SignIn> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  "Welcome to Saـكِّـnni App",
+                  "Welcome to Saـكِّـnni App",
                   style: TextStyle(fontSize: 20, color: Colors.white70),
                 ),
               ],
@@ -196,7 +197,14 @@ class _SignInState extends State<SignIn> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ForgotPasswordScreen(),
+                              ),
+                            );
+                          },
                           child: const Text(
                             "Forget Password?",
                             style: TextStyle(
@@ -209,7 +217,7 @@ class _SignInState extends State<SignIn> {
                       ),
                       const SizedBox(height: 15),
 
-                      // Log In button
+                      // Log In button - MODIFIED
                       SizedBox(
                         width: double.infinity,
                         height: 55,
@@ -217,17 +225,21 @@ class _SignInState extends State<SignIn> {
                           onPressed: () {
                             if (formState.currentState!.validate()) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text("Login successful!")),
+                                const SnackBar(
+                                  content: Text("Login successful!"),
+                                ),
                               );
+
                               print(
                                 "${emailController.text} ${passwordController.text}",
                               );
+
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => Navigation(),
+                                ),
+                              );
                             }
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>  HomePage(),
-                              ),
-                            );
                           },
 
                           style: ElevatedButton.styleFrom(

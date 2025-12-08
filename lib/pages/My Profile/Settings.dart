@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sakkeny_app/pages/My%20Profile/language_page.dart';
+import 'package:sakkeny_app/pages/My%20Profile/payment_methods_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -35,7 +37,6 @@ class _SettingsPageState extends State<SettingsPage> {
       body: Column(
         children: [
           const SizedBox(height: 40),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Align(
@@ -50,9 +51,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 20),
@@ -69,6 +68,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     mainColor,
                     Icons.credit_card,
                     "Payment & Billing",
+                    onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => PaymentMethodsScreenn ()),
+                          );
+                        },
                   ),
                   buildTile(
                     mainColor,
@@ -81,40 +86,24 @@ class _SettingsPageState extends State<SettingsPage> {
                     },
                   ),
 
+                  // Language Tile inside Preferences
                   if (showPreferences)
                     Padding(
                       padding: const EdgeInsets.only(left: 40, right: 16, top: 8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 6,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.language, color: mainColor, size: 24),
-                            SizedBox(width: 14),
-                            Expanded(
-                              child: Text(
-                                "Language",
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      child: buildTile(
+                        mainColor,
+                        Icons.language,
+                        "Language",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LanguageSelectionScreen()),
+                          );
+                        },
                       ),
                     ),
 
+                 
                   buildTile(
                     mainColor,
                     Icons.info_outline,
@@ -191,7 +180,6 @@ class AboutPage extends StatelessWidget {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-
       body: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
@@ -231,7 +219,3 @@ class AboutPage extends StatelessWidget {
     );
   }
 }
-
-
-
-

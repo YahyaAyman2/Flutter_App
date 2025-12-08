@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sakkeny_app/pages/Startup%20pages/sign_in.dart';
 import 'package:sakkeny_app/pages/bottom_nav.dart';
-import 'package:sakkeny_app/pages/sign_in.dart';
 
 const Color primaryDarkGreen = Color(0xFF386B5D);
 const Color secondaryLightGreen = Color(0xFF5D9D8E);

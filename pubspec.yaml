@@ -28,7 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  image_picker: ^1.0.4
+  image_picker: ^1.2.1
   circle_flags: ^3.0.0
   flutter:
     sdk: flutter
@@ -39,6 +39,10 @@ dependencies:
   font_awesome_flutter : ^10.5.0
   cupertino_icons: ^1.0.8
   crypto: ^3.0.7
+  firebase_core: ^4.2.1
+  cloud_firestore: ^6.1.0
+  firebase_auth: ^6.1.2
+  supabase_flutter: ^2.10.3
 
 dev_dependencies:
   flutter_test:

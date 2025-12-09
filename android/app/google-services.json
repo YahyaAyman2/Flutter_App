@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "219452254582",
+    "project_id": "flutter-saknni-app",
+    "storage_bucket": "flutter-saknni-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:219452254582:android:2eba2b5be14c553fae3257",
+        "android_client_info": {
+          "package_name": "com.example.sakkeny_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNi1SQphvkJ4O3Xw2aHzJT3JxEqsHom7w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

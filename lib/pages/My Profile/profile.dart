@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:sakkeny_app/pages/My%20Profile/MyAccount.dart';
-import 'package:sakkeny_app/pages/My%20Profile/Settings.dart';
-import 'package:sakkeny_app/pages/Startup%20pages/sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+
+import 'package:sakkeny_app/pages/My Profile/MyAccount.dart';
+import 'package:sakkeny_app/pages/My Profile/Settings.dart';
+import 'package:sakkeny_app/pages/Startup pages/sign_in.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -9,32 +14,181 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final fb_auth.User? user = fb_auth.FirebaseAuth.instance.currentUser;
+  final supabase = Supabase.instance.client;
+
+  String? _imageUrl;
+  String? _name = "";
+  String? _status = "HomeFinder"; // ثابتة زى كودك
+  bool _isUploading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _imageUrl = user?.photoURL;
+    _name = user?.email ?? "User"; // أو لو عندك اسم فى Firestore ممكن تجيبيه
+  }
+
+  Future<void> _deleteOldProfileImage() async {
+    try {
+      if (user?.uid == null) return;
+
+      final possibleFiles = [
+        '${user!.uid}.jpg',
+        '${user!.uid}.jpeg',
+        '${user!.uid}.png',
+        '${user!.uid}.webp',
+      ];
+
+      await supabase.storage.from('profile-images').remove(possibleFiles);
+      debugPrint('Old profile images cleanup attempt finished.');
+    } catch (e) {
+      // We catch this silently because if it fails (e.g. permission issue),
+      // we still want the Upload to proceed.
+      debugPrint('Note: Cleanup warning: $e');
+    }
+  }
+
+  Future<void> _uploadProfileImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 75,
+    );
+
+    if (image == null) return;
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      await _deleteOldProfileImage();
+
+      final bytes = await image.readAsBytes();
+      final ext = image.name.split('.').last;
+      final fileName = '${user!.uid}.$ext';
+
+      await supabase.storage
+          .from('profile-images')
+          .uploadBinary(
+            fileName,
+            bytes,
+            fileOptions: FileOptions(upsert: true, contentType: 'image/$ext'),
+          );
+
+      final url = supabase.storage
+          .from('profile-images')
+          .getPublicUrl(fileName);
+
+      final finalUrl = '$url?v=${DateTime.now().millisecondsSinceEpoch}';
+
+      if (user != null) {
+        await user!.updatePhotoURL(finalUrl);
+      }
+
+      await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({
+        'profile_image': finalUrl,
+        'email': user!.email,
+        'last_updated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      if (mounted) {
+        setState(() {
+          _imageUrl = finalUrl;
+          _isUploading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Profile picture updated successfully!'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+        debugPrint('Upload Error: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(child: Text('Error: $e')),
+              ],
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 30.0, horizontal: 18.0),
+          padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 18),
           child: Column(
             children: [
-              CircleAvatar(
-                radius: 44,
-                backgroundImage: AssetImage('assets/images/U.jpg'
+              GestureDetector(
+                onTap: _isUploading ? null : _uploadProfileImage,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CircleAvatar(
+                      radius: 44,
+                      backgroundImage: _imageUrl != null
+                          ? NetworkImage(_imageUrl!)
+                          : null,
+                      child: _imageUrl == null
+                          ? Icon(Icons.person, size: 50, color: Colors.grey)
+                          : null,
+                    ),
+                    if (_isUploading)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black26,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              SizedBox(height: 14),
 
+              SizedBox(height: 14),
               Text(
-                "Arlene McCoy",
+                _name ?? "User",
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: Colors.black87,
                 ),
               ),
-              SizedBox(height: 6),
 
+              SizedBox(height: 6),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
@@ -42,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  "HomeFinder",
+                  _status!,
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.green[700],
@@ -50,8 +204,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
+
               SizedBox(height: 30),
 
+              // MENU SECTION
               Expanded(
                 child: ListView(
                   children: [
@@ -121,8 +277,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
-  }
-
+  }  
   Widget buildMenuItem({
     required IconData icon,
     required String text,
@@ -153,7 +308,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
-// Simple placeholder page for "My Account" navigation target
 
 class NotificationsPage extends StatelessWidget {
   final Color primary = Color(0xFF1B3C2E);

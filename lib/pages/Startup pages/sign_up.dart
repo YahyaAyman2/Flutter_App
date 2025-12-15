@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sakkeny_app/pages/Startup%20pages/sign_in.dart';
@@ -7,19 +8,6 @@ import 'package:sakkeny_app/pages/bottom_nav.dart';
 const Color primaryDarkGreen = Color(0xFF386B5D);
 const Color secondaryLightGreen = Color(0xFF5D9D8E);
 const Color linkColor = Color(0xFF386B5D);
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SignUpPage();
-  }
-}
 
 class CustomColors extends ThemeExtension<CustomColors> {
   final Color linkColor;
@@ -55,48 +43,102 @@ class _SignUpPageState extends State<SignUpPage> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isLoading = false;
+
+  final CollectionReference users = FirebaseFirestore.instance.collection('users');
 
   @override
   void dispose() {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneNumberController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
-  final CollectionReference users = FirebaseFirestore.instance.collection('users');
 
-    Future addUserDetails() async {
-    final userDoc = users.doc(); // Create a new document reference with an auto-generated ID
-    await userDoc.set({
+  // Add user details to Firestore after successful authentication
+  Future<void> addUserDetails(String userId) async {
+    await users.doc(userId).set({
       'first name': _firstNameController.text.trim(),
       'last name': _lastNameController.text.trim(),
       'phone number': _phoneNumberController.text.trim(),
       'email': _emailController.text.trim(),
       'createdAt': Timestamp.now(),
       'updatedAt': Timestamp.now(),
-      'userId': userDoc.id, // Store the auto-generated ID in the document
-      'isVerified': true,
+      'userId': userId,
+      'isVerified': false, // Set to false initially, can be updated after email verification
     });
   }
 
-  void _submitForm() async {
-  if (_formKey.currentState!.validate()) {
+  // Integrated sign up function
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
     try {
-      await addUserDetails(); // 🔥 Firestore write
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created successfully')),
+      // Step 1: Create user with Firebase Authentication
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => Navigation()),
-      );
+      // Step 2: Add user details to Firestore using the UID from Authentication
+      await addUserDetails(userCredential.user!.uid);
+
+      // Optional: Send email verification
+      // await userCredential.user!.sendEmailVerification();
+
+      // Step 3: Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Step 4: Navigate to home
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Navigation()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String message = 'Something went wrong';
+
+      if (e.code == 'email-already-in-use') {
+        message = 'This email is already registered';
+      } else if (e.code == 'invalid-email') {
+        message = 'Invalid email format';
+      } else if (e.code == 'weak-password') {
+        message = 'Password is too weak';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      // Handle Firestore errors
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving user data: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
-}
+
   @override
   Widget build(BuildContext context) {
     final ThemeData localTheme = ThemeData(
@@ -228,6 +270,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 return null;
                               },
                             ),
+                            
                             _buildLabel(context, 'Last Name'),
                             _buildTextFormField(
                               context,
@@ -241,6 +284,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 return null;
                               },
                             ),
+                            
                             _buildLabel(context, 'Phone Number'),
                             _buildTextFormField(
                               context,
@@ -331,7 +375,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   return "Confirm Password is required";
                                 }
                                 if (value != _passwordController.text) {
-                                  return "Incorrect password";
+                                  return "Passwords do not match";
                                 }
                                 return null;
                               },
@@ -340,8 +384,12 @@ class _SignUpPageState extends State<SignUpPage> {
                             const SizedBox(height: 30),
 
                             ElevatedButton(
-                              onPressed: _submitForm,
-                              child: const Text('Sign Up'),
+                              onPressed: _isLoading ? null : _submitForm,
+                              child: _isLoading
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                  : const Text('Sign Up'),
                             ),
 
                             const SizedBox(height: 20),
@@ -470,10 +518,9 @@ class _SignUpPageState extends State<SignUpPage> {
       obscureText: obscureText,
       maxLength: maxlength,
       validator: validator,
-
       style: const TextStyle(fontSize: 14),
       decoration: InputDecoration(
-        counter: Offstage(),
+        counter: const Offstage(),
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.grey),
         suffixIcon: suffixIcon,

@@ -26,20 +26,18 @@ class FilterPage extends StatefulWidget {
 }
 
 class _FilterPageState extends State<FilterPage> {
-  RangeValues _priceRange = const RangeValues(100000, 6000000);
+  RangeValues _priceRange = const RangeValues(100, 50000);
   String selectedPropertyType = 'Apartment';
   int selectedBedroom = 3;
   int selectedBathroom = 2;
 
   Map<String, bool> amenities = {
     'Air Conditioning': true,
-    'In-unit Laundry': true,
-    'Gym': false,
-    'Elevator': false,
-    'Doorman': false,
-    'Garage': true,
-    'Dishwasher': true,
-    'Hardwood Floors': false,
+    'Wifi': true,
+    'Closet': false,
+    'Iron': false,
+    'Tv': false,
+    'Dedicted work-Space': true,
   };
 
   static const Color primaryColor = Color(0xFF276152);
@@ -80,8 +78,8 @@ class _FilterPageState extends State<FilterPage> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 RangeSlider(
-                  min: 100000,
-                  max: 10000000,
+                  min: 100,
+                  max: 50000,
                   values: _priceRange,
                   activeColor: primaryColor,
                   onChanged: (value) {
@@ -108,16 +106,14 @@ class _FilterPageState extends State<FilterPage> {
                   spacing: 10,
                   children: [
                     _typeChip('Apartment'),
-                    _typeChip('Bungalow'),
-                    _typeChip('Duplex'),
-                    _typeChip('Villa'),
+                    _typeChip('House'),
                   ],
                 ),
 
                 const SizedBox(height: 20),
 
                 // BEDROOM
-                const Text('Bedroom',
+                const Text('Bedrooms',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Wrap(
@@ -135,13 +131,13 @@ class _FilterPageState extends State<FilterPage> {
                 const SizedBox(height: 20),
 
                 // BATHROOM
-                const Text('Bathroom',
+                const Text('Bathrooms',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 10,
                   children: List.generate(
-                    5,
+                    3,
                     (i) => _numberChip(
                       i + 1,
                       selectedBathroom,
@@ -186,7 +182,7 @@ class _FilterPageState extends State<FilterPage> {
                       ),
                       onPressed: () {
                         setState(() {
-                          _priceRange = const RangeValues(100000, 6000000);
+                          _priceRange = const RangeValues(100, 50000);
                           selectedPropertyType = 'Apartment';
                           selectedBedroom = 3;
                           selectedBathroom = 2;

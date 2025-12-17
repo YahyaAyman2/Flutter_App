@@ -16,7 +16,8 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
 
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController rentController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
+  final TextEditingController areaController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
   List<File> selectedImages = [];
@@ -92,9 +93,9 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
       return;
     }
 
-    if (addressController.text.trim().isEmpty) {
+    if (cityController.text.trim().isEmpty || areaController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter an address')),
+        const SnackBar(content: Text('Please enter city and area')),
       );
       return;
     }
@@ -116,7 +117,8 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
             .where((e) => e.value)
             .map((e) => e.key)
             .toList(),
-        'address': addressController.text.trim(),
+        'city': cityController.text.trim(),
+        'area': areaController.text.trim(),
         'images': imageUrls,
         'created_at': FieldValue.serverTimestamp(),
       });
@@ -350,16 +352,30 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Address",
+        const Text("City",
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 6),
         TextField(
-          controller: addressController,
+          controller: cityController,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            prefixIcon: const Icon(Icons.location_city),
+            hintText: "Enter city",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+        ),
+        const SizedBox(height: 20),
+        const Text("Area",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        TextField(
+          controller: areaController,
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
             prefixIcon: const Icon(Icons.location_on),
-            hintText: "Feryal street, Building 123, Apartment 4B",
+            hintText: "Enter area",
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
           ),
         ),

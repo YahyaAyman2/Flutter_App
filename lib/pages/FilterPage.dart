@@ -257,4 +257,3 @@ class _FilterPageState extends State<FilterPage> {
     );
   }
 }
-

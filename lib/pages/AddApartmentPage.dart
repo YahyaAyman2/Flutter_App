@@ -1,8 +1,12 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sakkeny_app/services/property_service.dart';
 import 'package:sakkeny_app/models/cards.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 class AddApartmentPage extends StatefulWidget {
   const AddApartmentPage({super.key});
@@ -13,71 +17,18 @@ class AddApartmentPage extends StatefulWidget {
 
 class _AddApartmentPageState extends State<AddApartmentPage> {
   final PropertyService _propertyService = PropertyService();
+  final SupabaseClient supabase = Supabase.instance.client;
 
-  Future<void> publishApartment() async {
-  // ... your existing validation code ...
+  /* ---------------- Controllers ---------------- */
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController rentController = TextEditingController();
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
+  final TextEditingController areaController = TextEditingController();
 
-  // Show loading
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => const Center(
-      child: CircularProgressIndicator(),
-    ),
-  );
-
-  // Get selected amenities
-  List<String> selectedAmenitiesList = selectedAmenities.entries
-      .where((entry) => entry.value)
-      .map((entry) => entry.key)
-      .toList();
-
-  // Add property
-  bool success = await _propertyService.addProperty(
-    title: titleController.text.isEmpty 
-        ? 'Modern Apartment' 
-        : titleController.text,
-    description: descriptionController.text,
-    price: double.parse(rentController.text),
-    location: PropertyLocation(
-      city: cityController.text.isEmpty ? 'Cairo' : cityController.text,
-      area: areaController.text.isEmpty ? 'Nasr City' : areaController.text,
-      fullAddress: '${cityController.text.isEmpty ? 'Cairo' : cityController.text}, ${areaController.text.isEmpty ? 'Nasr City' : areaController.text}, Egypt',
-    ),
-    propertyType: selectedPropertyType,
-    bedrooms: bedrooms,
-    bathrooms: bathrooms,
-    livingrooms: livingrooms,
-    kitchens: kitchens,
-    balconies: balconies,
-    amenities: selectedAmenitiesList,
-    imageFiles: selectedImages,
-  );
-
-  // Hide loading
-  if (mounted) Navigator.pop(context);
-
-  if (success) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Property published successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.pop(context, true); // ✅ Return true to indicate success
-    }
-  } else {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ Failed to publish property'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-}
+  /* ---------------- Data ---------------- */
+  final ImagePicker _picker = ImagePicker();
+  List<XFile> selectedImages = [];
 
   final List<String> amenities = [
     "Air Conditioner",
@@ -105,11 +56,6 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
   ];
 
   Map<String, bool> selectedAmenities = {};
-  final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController rentController = TextEditingController();
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController cityController = TextEditingController();
-  final TextEditingController areaController = TextEditingController();
 
   String selectedPropertyType = "Apartment";
   int bedrooms = 1;
@@ -117,9 +63,6 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
   int livingrooms = 1;
   int kitchens = 1;
   int balconies = 0;
-
-  final ImagePicker _picker = ImagePicker();
-  List<File> selectedImages = [];
 
   @override
   void initState() {
@@ -129,20 +72,138 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
     }
   }
 
+  /* ---------------- Image Picker ---------------- */
   Future<void> pickImages() async {
+    final images = await _picker.pickMultiImage(imageQuality: 90);
+    if (images.isEmpty) return;
+
+    setState(() {
+      selectedImages.addAll(images);
+    });
+  }
+
+  /* ---------------- Upload Images to Supabase ---------------- */
+  Future<List<String>> uploadImagesToSupabase() async {
+    List<String> imageUrls = [];
+    final uuid = Uuid();
+
+    for (final image in selectedImages) {
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${uuid.v4()}.jpg';
+
+      Uint8List bytes = await image.readAsBytes();
+
+      await supabase.storage
+          .from('apartment-images')
+          .uploadBinary(
+            fileName,
+            bytes,
+            fileOptions: const FileOptions(contentType: 'image/jpeg'),
+          );
+
+      final publicUrl = supabase.storage
+          .from('apartment-images')
+          .getPublicUrl(fileName);
+
+      imageUrls.add(publicUrl);
+    }
+
+    return imageUrls;
+  }
+
+  /* ---------------- Publish Apartment ---------------- */
+  Future<void> publishApartment() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
     try {
-      final List<XFile> images = await _picker.pickMultiImage(imageQuality: 100);
+      final uploadedImageUrls = await uploadImagesToSupabase();
 
-      if (images.isEmpty) return;
+      List<String> selectedAmenitiesList = selectedAmenities.entries
+          .where((e) => e.value)
+          .map((e) => e.key)
+          .toList();
 
-      setState(() {
-        selectedImages.addAll(images.map((e) => File(e.path)));
-      });
+      bool success = await _propertyService.addProperty(
+        title: titleController.text.isEmpty
+            ? 'Modern Apartment'
+            : titleController.text,
+        description: descriptionController.text,
+        price: double.tryParse(rentController.text) ?? 0,
+        location: PropertyLocation(
+          city: cityController.text.isEmpty ? 'Cairo' : cityController.text,
+          area: areaController.text.isEmpty ? 'Nasr City' : areaController.text,
+          fullAddress:
+              '${cityController.text.isEmpty ? 'Cairo' : cityController.text}, '
+              '${areaController.text.isEmpty ? 'Nasr City' : areaController.text}, Egypt',
+        ),
+        propertyType: selectedPropertyType,
+        bedrooms: bedrooms,
+        bathrooms: bathrooms,
+        livingrooms: livingrooms,
+        kitchens: kitchens,
+        balconies: balconies,
+        amenities: selectedAmenitiesList,
+        imageUrls: uploadedImageUrls, // ✅ SUPABASE URLS
+      );
+
+      if (mounted) Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? '✅ Property published successfully!'
+                : '❌ Failed to publish property',
+          ),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
+
+      if (success && mounted) Navigator.pop(context, true);
     } catch (e) {
-      print("ERROR picking images: $e");
+      if (mounted) Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Upload failed: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
+  /* ---------------- Image Widget (Web + Mobile) ---------------- */
+  Widget buildImage(XFile image) {
+    if (kIsWeb) {
+      return FutureBuilder<Uint8List>(
+        future: image.readAsBytes(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return Image.memory(
+            snapshot.data!,
+            width: 120,
+            height: 120,
+            fit: BoxFit.cover,
+          );
+        },
+      );
+    } else {
+      return Image.file(
+        File(image.path),
+        width: 120,
+        height: 120,
+        fit: BoxFit.cover,
+      );
+    }
+  }
+
+  /* ---------------- UI (UNCHANGED) ---------------- */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -163,31 +224,41 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
             _buildImagePickerSection(),
             const SizedBox(height: 20),
 
-            // Title
-            const Text("Title",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const Text(
+              "Title",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 6),
-            _buildTextBox(titleController, "e.g. Modern Apartment in Nasr City", maxLines: 1),
+            _buildTextBox(
+              titleController,
+              "e.g. Modern Apartment in Nasr City",
+              maxLines: 1,
+            ),
 
             const SizedBox(height: 20),
 
-            // Description
-            const Text("Description",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const Text(
+              "Description",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 6),
-            _buildTextBox(descriptionController, "Describe your apartment...", maxLines: 5),
+            _buildTextBox(
+              descriptionController,
+              "Describe your apartment...",
+              maxLines: 5,
+            ),
 
             const SizedBox(height: 20),
 
-            // Location Section
-            const Text("Location",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const Text(
+              "Location",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 6),
             _buildLocationSection(),
 
             const SizedBox(height: 20),
 
-            // Property Type Dropdown
             _buildInputWithLabel(
               "Property Type",
               Container(
@@ -201,22 +272,22 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
                   value: selectedPropertyType,
                   isExpanded: true,
                   underline: const SizedBox(),
-                  items: propertyTypes.map((String type) {
-                    return DropdownMenuItem(
-                      value: type,
-                      child: Text(type),
-                    );
-                  }).toList(),
+                  items: propertyTypes
+                      .map(
+                        (type) =>
+                            DropdownMenuItem(value: type, child: Text(type)),
+                      )
+                      .toList(),
                   onChanged: (v) {
                     setState(() => selectedPropertyType = v!);
                   },
                 ),
               ),
             ),
-
-            const SizedBox(height: 20),
+             
 
             // Rent
+            const SizedBox(height: 30),
             _buildInputWithLabel(
               "Monthly Rent (EGP)",
               TextField(
@@ -234,7 +305,6 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
             ),
 
             const SizedBox(height: 20),
-
             // Rooms Grid
             const Text("Rooms",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
@@ -274,16 +344,16 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
             ),
 
             const SizedBox(height: 25),
-
             // Amenities
-            const Text("Amenities",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            const Text(
+              "Amenities",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 10),
             _buildAmenitiesGrid(),
 
             const SizedBox(height: 30),
 
-            // Publish Button
             SizedBox(
               width: double.infinity,
               height: 54,
@@ -298,9 +368,10 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
                 child: const Text(
                   "Publish Apartment",
                   style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -310,6 +381,7 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
     );
   }
 
+  /* ---------------- Image Picker UI ---------------- */
   Widget _buildImagePickerSection() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -333,12 +405,6 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
                       onPressed: pickImages,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF276152),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        textStyle: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
                       ),
                       child: const Text(
                         "+ Add Photos",
@@ -369,16 +435,12 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
                           ),
                         );
                       }
+
                       return Stack(
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: Image.file(
-                              selectedImages[index],
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                            ),
+                            child: buildImage(selectedImages[index]),
                           ),
                           Positioned(
                             top: 4,
@@ -392,8 +454,11 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
                               child: const CircleAvatar(
                                 radius: 12,
                                 backgroundColor: Colors.black54,
-                                child: Icon(Icons.close,
-                                    size: 14, color: Colors.white),
+                                child: Icon(
+                                  Icons.close,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
@@ -407,7 +472,12 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
     );
   }
 
-  Widget _buildTextBox(controller, hint, {int maxLines = 5}) {
+  /* ---------------- Helpers ---------------- */
+  Widget _buildTextBox(
+    TextEditingController controller,
+    String hint, {
+    int maxLines = 5,
+  }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
@@ -452,14 +522,40 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 6),
         child,
       ],
     );
   }
 
+  Widget _buildAmenitiesGrid() {
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: amenities.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 4,
+      ),
+      itemBuilder: (context, i) {
+        return CheckboxListTile(
+          value: selectedAmenities[amenities[i]],
+          onChanged: (v) {
+            setState(() {
+              selectedAmenities[amenities[i]] = v ?? false;
+            });
+          },
+          title: Text(amenities[i]),
+          controlAffinity: ListTileControlAffinity.leading,
+        );
+      },
+    );
+  }
+  // ---------------- Dropdown Helper ---------------- //
   Widget _buildDropdown(String label, int value, Function(int?) onChanged, {int max = 5}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,30 +585,6 @@ class _AddApartmentPageState extends State<AddApartmentPage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildAmenitiesGrid() {
-    return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      itemCount: amenities.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 4,
-      ),
-      itemBuilder: (context, i) {
-        return CheckboxListTile(
-          value: selectedAmenities[amenities[i]],
-          onChanged: (v) {
-            setState(() {
-              selectedAmenities[amenities[i]] = v ?? false;
-            });
-          },
-          title: Text(amenities[i]),
-          controlAffinity: ListTileControlAffinity.leading,
-        );
-      },
     );
   }
 }

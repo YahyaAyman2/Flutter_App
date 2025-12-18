@@ -1,13 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'dart:io';
 import '../models/cards.dart';
 
 class PropertyService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // ===== 1. FETCH ALL PROPERTIES (for HomePage) =====
   Stream<List<PropertyModel>> getAllProperties() {
@@ -54,11 +51,11 @@ class PropertyService {
     required int kitchens,
     required int balconies,
     required List<String> amenities,
-    required List<File> imageFiles,
+    required List<String> imageUrls,
   }) async {
     try {
       print('📤 Starting property upload...');
-      
+
       // Get current user
       User? currentUser = _auth.currentUser;
       if (currentUser == null) {
@@ -75,7 +72,7 @@ class PropertyService {
 
       String ownerName = 'Unknown';
       String? ownerImage;
-      
+
       if (userDoc.exists) {
         try {
           ownerName = userDoc.get('first name') ?? 'Unknown';
@@ -90,47 +87,7 @@ class PropertyService {
       String propertyId = _firestore.collection('properties').doc().id;
       print('✅ Property ID generated: $propertyId');
 
-      // Upload images to Firebase Storage with improved error handling
-      List<String> uploadedImageUrls = [];
-      
-      if (imageFiles.isEmpty) {
-        print('❌ No images provided');
-        return false;
-      }
-
-      print('📤 Uploading ${imageFiles.length} images...');
-      
-      for (int i = 0; i < imageFiles.length; i++) {
-  try {
-    if (!await imageFiles[i].exists()) continue;
-
-    String extension = imageFiles[i].path.split('.').last.toLowerCase();
-    if (extension == 'jpg') extension = 'jpeg';
-    String fileName = 'image_${i}_${DateTime.now().millisecondsSinceEpoch}.$extension';
-    String imagePath = 'properties/$propertyId/$fileName';
-    print('Uploading file path: ${imageFiles[i].path}');
-if (!await imageFiles[i].exists()) {
-  print('❌ File does not exist!');
-  continue;
-}
-
-
-    Reference storageRef = _storage.ref().child(imagePath);
-    SettableMetadata metadata = SettableMetadata(contentType: 'image/$extension');
-
-    // ✅ هذا هو الجزء الصحيح
-    UploadTask uploadTask = storageRef.putFile(imageFiles[i], metadata);
-    TaskSnapshot snapshot = await uploadTask; // <- انتظر الانتهاء
-
-    String downloadUrl = await snapshot.ref.getDownloadURL();
-    uploadedImageUrls.add(downloadUrl);
-
-  } catch (e) {
-    print('❌ Error uploading image ${i + 1}: $e');
-  }
-}
-
-      print('✅ Successfully uploaded ${uploadedImageUrls.length} images');
+      // Upload images (assuming imageUrls are already uploaded and are URLs)
 
       // Create property object
       PropertyModel newProperty = PropertyModel(
@@ -151,8 +108,8 @@ if (!await imageFiles[i].exists()) {
         balconies: balconies,
         amenities: amenities,
         isWifi: amenities.contains('Wifi'),
-        images: uploadedImageUrls,
-        mainImage: uploadedImageUrls.isNotEmpty ? uploadedImageUrls[0] : '',
+        images: imageUrls, // ✅
+        mainImage: imageUrls.first, // ✅
         rating: 0.0,
         reviews: 0,
         status: 'available',
@@ -160,7 +117,7 @@ if (!await imageFiles[i].exists()) {
       );
 
       print('📝 Saving property to Firestore...');
-      
+
       // Save to Firestore
       await _firestore
           .collection('properties')
@@ -169,7 +126,6 @@ if (!await imageFiles[i].exists()) {
 
       print('✅ Property added successfully!');
       return true;
-      
     } catch (e, stackTrace) {
       print('❌ Error adding property: $e');
       print('Stack trace: $stackTrace');
@@ -351,22 +307,22 @@ if (!await imageFiles[i].exists()) {
         .collection('saved_properties')
         .snapshots()
         .asyncMap((snapshot) async {
-      if (snapshot.docs.isEmpty) return [];
+          if (snapshot.docs.isEmpty) return [];
 
-      List<String> propertyIds = snapshot.docs
-          .map((doc) => doc.get('propertyId') as String)
-          .toList();
+          List<String> propertyIds = snapshot.docs
+              .map((doc) => doc.get('propertyId') as String)
+              .toList();
 
-      List<PropertyModel> properties = [];
-      for (String propertyId in propertyIds) {
-        PropertyModel? property = await getPropertyById(propertyId);
-        if (property != null) {
-          properties.add(property);
-        }
-      }
+          List<PropertyModel> properties = [];
+          for (String propertyId in propertyIds) {
+            PropertyModel? property = await getPropertyById(propertyId);
+            if (property != null) {
+              properties.add(property);
+            }
+          }
 
-      return properties;
-    });
+          return properties;
+        });
   }
 
   // ===== 11. GET USER'S OWN PROPERTIES =====
@@ -381,9 +337,9 @@ if (!await imageFiles[i].exists()) {
         .where('userId', isEqualTo: currentUser.uid)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return PropertyModel.fromFirestore(doc.data());
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            return PropertyModel.fromFirestore(doc.data());
+          }).toList();
+        });
   }
 }

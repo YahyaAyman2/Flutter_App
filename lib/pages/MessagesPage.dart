@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    print('Firebase initialization error: $e');
+  }
+
   runApp(const MyApp());
 }
 
 // app setup
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -18,6 +30,7 @@ class MyApp extends StatelessWidget {
 }
 
 // messages page
+
 class MessagesPage extends StatefulWidget {
   const MessagesPage({super.key});
 
@@ -26,21 +39,30 @@ class MessagesPage extends StatefulWidget {
 }
 
 class _MessagesPageState extends State<MessagesPage> {
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
+
+  String get currentUserId => auth.currentUser?.uid ?? "";
+
   // users data
+
   List<Map<String, dynamic>> allUsers = [
     {
+      "id": "user1",
       "name": "Sara Ahmed",
       "message": "Hello! I'm interested in the apartment.",
       "time": "10:30 AM",
       "unread": 1,
     },
     {
+      "id": "user2",
       "name": "Mohamed Osama",
       "message": "Is the apartment still available?",
       "time": "Yesterday",
       "unread": 1,
     },
     {
+      "id": "user3",
       "name": "Ahmed Mostafa",
       "message": "Can you send more details?",
       "time": "10/11/2025",
@@ -54,9 +76,46 @@ class _MessagesPageState extends State<MessagesPage> {
   void initState() {
     super.initState();
     filteredUsers = allUsers;
+    _loadLastMessages();
+  }
+
+  // Load last messages from Firebase
+
+  Future<void> _loadLastMessages() async {
+    if (currentUserId.isEmpty) return;
+
+    for (var user in allUsers) {
+      String chatId = _getChatId(user["id"]!);
+
+      firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .orderBy('timestamp', descending: true)
+          .limit(1)
+          .snapshots()
+          .listen((snapshot) {
+            if (snapshot.docs.isNotEmpty) {
+              var lastMessage = snapshot.docs.first.data();
+
+              setState(() {
+                user["message"] = lastMessage['text'] ?? user["message"];
+              });
+            }
+          });
+    }
+  }
+
+  // Generate chat ID
+
+  String _getChatId(String otherUserId) {
+    List<String> ids = [currentUserId, otherUserId];
+    ids.sort();
+    return ids.join('_');
   }
 
   // search
+
   void searchUser(String text) {
     setState(() {
       filteredUsers = allUsers
@@ -70,14 +129,13 @@ class _MessagesPageState extends State<MessagesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Messages ", style: TextStyle(fontSize: 28)),
         elevation: 0,
-
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -99,9 +157,7 @@ class _MessagesPageState extends State<MessagesPage> {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
             // list
             Expanded(
               child: ListView(
@@ -132,10 +188,12 @@ class _MessagesPageState extends State<MessagesPage> {
                         setState(() {
                           user["unread"] = 0;
                         });
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => ChatPage(
+                              userId: user["id"]!,
                               name: user["name"]!,
                               lastMessage: user["message"]!,
                             ),
@@ -156,11 +214,18 @@ class _MessagesPageState extends State<MessagesPage> {
 }
 
 // chat page
+
 class ChatPage extends StatefulWidget {
+  final String userId;
   final String name;
   final String lastMessage;
 
-  const ChatPage({super.key, required this.name, required this.lastMessage});
+  const ChatPage({
+    super.key,
+    required this.userId,
+    required this.name,
+    required this.lastMessage,
+  });
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -168,56 +233,148 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController messageController = TextEditingController();
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
-  // chat messages
-  List<Map<String, dynamic>> messages = [];
+  String get currentUserId => auth.currentUser?.uid ?? "";
 
   @override
   void initState() {
     super.initState();
-    messages = [
-      {"text": widget.lastMessage, "isMe": false},
-    ];
+    _initializeChat();
   }
 
-  // send
-  void sendMessage() {
-    if (messageController.text.trim().isEmpty) return;
+  // Initialize chat with pre-designed message
 
-    setState(() {
-      messages.add({"text": messageController.text.trim(), "isMe": true});
-    });
+  Future<void> _initializeChat() async {
+    if (currentUserId.isEmpty) return;
 
-    messageController.clear();
+    try {
+      String chatId = _getChatId();
+
+      DocumentSnapshot chatDoc = await firestore
+          .collection('chats')
+          .doc(chatId)
+          .get();
+
+      if (!chatDoc.exists) {
+        // Create chat document
+
+        await firestore.collection('chats').doc(chatId).set({
+          'participants': [currentUserId, widget.userId],
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
+        // Add the pre-designed message as first message
+
+        await firestore
+            .collection('chats')
+            .doc(chatId)
+            .collection('messages')
+            .add({
+              'text': widget.lastMessage,
+              'senderId': widget.userId,
+              'timestamp': FieldValue.serverTimestamp(),
+            });
+      }
+    } catch (e) {
+      print('Error initializing chat: $e');
+    }
+  }
+
+  // Generate chat ID
+
+  String _getChatId() {
+    List<String> ids = [currentUserId, widget.userId];
+    ids.sort();
+    return ids.join('_');
+  }
+
+  // Send message
+
+  Future<void> sendMessage() async {
+    if (messageController.text.trim().isEmpty || currentUserId.isEmpty) return;
+
+    String chatId = _getChatId();
+    String messageText = messageController.text.trim();
+
+    try {
+      await firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .add({
+            'text': messageText,
+            'senderId': currentUserId,
+            'timestamp': FieldValue.serverTimestamp(),
+          });
+
+      messageController.clear();
+    } catch (e) {
+      print('Error sending message: $e');
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error sending message: $e')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    String chatId = _getChatId();
+
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(widget.name),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: Color(0xFF276152),
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
-
       body: Column(
         children: [
           // messages
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: messages.map((msg) {
-                return Align(
-                  alignment: msg["isMe"]
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: ChatBubble(text: msg["text"], isMe: msg["isMe"]),
+            child: StreamBuilder<QuerySnapshot>(
+              stream: firestore
+                  .collection('chats')
+                  .doc(chatId)
+                  .collection('messages')
+                  .orderBy('timestamp', descending: false)
+                  .snapshots(),
+
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text('No messages yet'));
+                }
+
+                return ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: snapshot.data!.docs.map((doc) {
+                    Map<String, dynamic> data =
+                        doc.data() as Map<String, dynamic>;
+
+                    bool isMe = data['senderId'] == currentUserId;
+
+                    return Align(
+                      alignment: isMe
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: ChatBubble(text: data['text'] ?? '', isMe: isMe),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             ),
           ),
-
           // input
           Container(
             padding: const EdgeInsets.all(10),
@@ -242,9 +399,7 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 10),
-
                 GestureDetector(
                   onTap: sendMessage,
                   child: const CircleAvatar(
@@ -263,6 +418,7 @@ class _ChatPageState extends State<ChatPage> {
 }
 
 // chat bubble
+
 class ChatBubble extends StatelessWidget {
   final String text;
   final bool isMe;
@@ -281,7 +437,10 @@ class ChatBubble extends StatelessWidget {
         color: isMe ? const Color(0xFF276152) : Colors.grey[300],
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(text),
+      child: Text(
+        text,
+        style: TextStyle(color: isMe ? Colors.white : Colors.black),
+      ),
     );
   }
 }

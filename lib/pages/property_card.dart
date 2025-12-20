@@ -60,12 +60,12 @@ class _PropertyCardState extends State<PropertyCard> {
         SnackBar(
           content: Text(
             _isSaved
-                ? '❤️ Added to favorites'
-                : '💔 Removed from favorites',
+                ? 'Added to favorites'
+                : 'Removed from favorites',
           ),
           duration: const Duration(seconds: 1),
           backgroundColor:
-              _isSaved ? Colors.green : Colors.grey,
+              _isSaved ? Colors.green : Colors.red,
         ),
       );
     } else {
@@ -95,8 +95,6 @@ class _PropertyCardState extends State<PropertyCard> {
               child: CachedNetworkImage(
                 imageUrl: widget.imagePath,
                 fit: BoxFit.cover,
-                memCacheWidth: 700,
-                memCacheHeight: 500,
 
                 placeholder: (context, url) => Container(
                   color: Colors.grey[300],

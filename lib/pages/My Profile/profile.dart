@@ -7,6 +7,8 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:sakkeny_app/pages/My Profile/MyAccount.dart';
 import 'package:sakkeny_app/pages/My Profile/Settings.dart';
+import 'package:sakkeny_app/pages/My Profile/NotificationsPage.dart';
+import 'package:sakkeny_app/pages/My Profile/SupportPage.dart';
 import 'package:sakkeny_app/pages/Startup pages/sign_in.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -21,7 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _imageUrl;
   String? _name = "";
   String? _lastname = "";
-  String? _status = "HomeFinder"; // ثابتة زى كودك
+  String? _status = "HomeFinder";
   bool _isUploading = false;
 
   @override
@@ -53,10 +55,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-
-
-
-
   Future<void> _deleteOldProfileImage() async {
     try {
       if (user?.uid == null) return;
@@ -71,8 +69,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await supabase.storage.from('profile-images').remove(possibleFiles);
       debugPrint('Old profile images cleanup attempt finished.');
     } catch (e) {
-      // We catch this silently because if it fails (e.g. permission issue),
-      // we still want the Upload to proceed.
       debugPrint('Note: Cleanup warning: $e');
     }
   }
@@ -241,7 +237,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     buildMenuItem(
                       icon: Icons.home_work_outlined,
-                      text: "My Listings", // ✅ NEW
+                      text: "My Listings",
                       iconColor: Colors.grey,
                       onTap: () {
                         Navigator.push(
@@ -347,179 +343,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         onTap: onTap,
       ),
-    );
-  }
-}
-
-class NotificationsPage extends StatelessWidget {
-  final Color primary = Color(0xFF1B3C2E);
-  final Color accent = Color(0xFF1B3C2E);
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: primary,
-        title: Text("Notifications"),
-        foregroundColor: Colors.white,
-      ),
-      body: ListView(
-        padding: EdgeInsets.all(16),
-        children: [
-          _buildNotification(
-            "Tour Booked Successfully",
-            "Your house tour has been confirmed!",
-            "1h ago",
-            primary,
-          ),
-          _buildNotification(
-            "Exclusive Offers Inside",
-            "Check out new rental offers near you.",
-            "1h ago",
-            primary,
-          ),
-          _buildNotification(
-            "Property Review Request",
-            "Please leave a review for your recent visit.",
-            "2h ago",
-            primary,
-          ),
-          SizedBox(height: 10),
-          Text("Yesterday", style: TextStyle(color: Colors.grey)),
-          _buildNotification(
-            "Tour Request Accepted",
-            "The owner approved your tour request.",
-            "1d ago",
-            accent,
-          ),
-          _buildNotification(
-            "New Payment Added",
-            "Your new payment method is saved.",
-            "1d ago",
-            accent,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNotification(
-    String title,
-    String subtitle,
-    String time,
-    Color iconColor,
-  ) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      margin: EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: iconColor.withOpacity(0.2),
-            child: Icon(Icons.notifications, color: iconColor),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 4),
-                Text(subtitle, style: TextStyle(color: Colors.black54)),
-              ],
-            ),
-          ),
-          Text(time, style: TextStyle(color: Colors.grey)),
-        ],
-      ),
-    );
-  }
-}
-
-class SupportPage extends StatelessWidget {
-  final Color primary = Color(0xFF1B3C2E);
-  final Color accent = Color(0xFF1B3C2E);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: primary,
-        title: Text("FAQ & Support"),
-        foregroundColor: Colors.white,
-      ),
-      body: ListView(
-        padding: EdgeInsets.all(20),
-        children: [
-          Text(
-            "Didn’t find the answer you were looking for?",
-            style: TextStyle(color: Colors.black87),
-          ),
-          SizedBox(height: 10),
-
-          _buildSupportItem(Icons.language, "Go to our Website"),
-          _buildSupportItem(Icons.email_outlined, "Email Us"),
-          _buildSupportItem(Icons.description_outlined, "Terms of Service"),
-
-          SizedBox(height: 20),
-
-          TextField(
-            decoration: InputDecoration(
-              prefixIcon: Icon(Icons.search, color: primary),
-              hintText: "Find question...",
-              filled: true,
-              fillColor: Colors.grey[200],
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-
-          SizedBox(height: 20),
-          _buildFAQ(
-            "How do I change my password?",
-            "Go to menu → Profile → Change Password.",
-          ),
-          _buildFAQ(
-            "How to change my profile status?",
-            "Open Profile → Edit Status → Save.",
-          ),
-          _buildFAQ(
-            "How to export contacts?",
-            "Open Settings → Export → Choose format.",
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSupportItem(IconData icon, String text) {
-    return ListTile(
-      leading: Icon(icon, color: accent),
-      title: Text(text),
-      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-    );
-  }
-
-  Widget _buildFAQ(String q, String a) {
-    return ExpansionTile(
-      title: Text(q, style: TextStyle(fontWeight: FontWeight.bold)),
-      children: [
-        Padding(
-          padding: EdgeInsets.all(12),
-          child: Text(a, style: TextStyle(color: Colors.black54)),
-        ),
-      ],
     );
   }
 }

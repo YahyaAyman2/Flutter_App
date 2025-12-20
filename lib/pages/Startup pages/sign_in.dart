@@ -40,7 +40,7 @@ class _SignInState extends State<SignIn> {
 
           // Text on green background
           const Padding(
-            padding: EdgeInsets.only(left: 30, top: 80),
+            padding: EdgeInsets.only(left: 30, top: 60),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -52,10 +52,10 @@ class _SignInState extends State<SignIn> {
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 4),
                 Text(
-                  "Welcome to Saـكِّـnni App",
-                  style: TextStyle(fontSize: 20, color: Colors.white70),
+                  "Welcome to Saknni App",
+                  style: TextStyle(fontSize: 20, color: Colors.white70, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -111,13 +111,13 @@ class _SignInState extends State<SignIn> {
                             horizontal: 16,
                           ),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(30),
                             borderSide: const BorderSide(
                               color: Color(0xFFE0E0E0),
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(30),
                             borderSide: const BorderSide(
                               color: Color(0xFF1E1E1E),
                             ),
@@ -176,13 +176,13 @@ class _SignInState extends State<SignIn> {
                             horizontal: 16,
                           ),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(30),
                             borderSide: const BorderSide(
                               color: Color(0xFFE0E0E0),
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(30),
                             borderSide: const BorderSide(
                               color: Color(0xFF1E1E1E),
                             ),
@@ -229,7 +229,7 @@ class _SignInState extends State<SignIn> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF276152),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
+                              borderRadius: BorderRadius.circular(30),
                             ),
                           ),
                           child: _isLoading

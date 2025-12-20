@@ -48,8 +48,7 @@ class _navigation extends State<Navigation> {
           ),
         ],
         currentIndex: _selectedIndex,
-        // Using the defined primary color for the selected item
-        // selectedItemColor: primaryDarkGreen,
+        selectedItemColor: Color(0xFF276152), // Changed to #276152
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed, // Necessary for 5 items

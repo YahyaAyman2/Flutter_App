@@ -48,7 +48,8 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
@@ -63,66 +64,68 @@ class _SignUpPageState extends State<SignUpPage> {
     _confirmPasswordController.dispose();
     super.dispose();
   }
-  final CollectionReference users = FirebaseFirestore.instance.collection('users');
 
- Future<void> addUserDetails(String uid) async {
-  await users.doc(uid).set({
-    'first name': _firstNameController.text.trim(),
-    'last name': _lastNameController.text.trim(),
-    'phone number': _phoneNumberController.text.trim(),
-    'email': _emailController.text.trim(),
-    'createdAt': Timestamp.now(),
-    'updatedAt': Timestamp.now(),
-    'userId': uid,
-    'isVerified': false,
-  });
-}
+  final CollectionReference users = FirebaseFirestore.instance.collection(
+    'users',
+  );
 
+  Future<void> addUserDetails(String uid) async {
+    await users.doc(uid).set({
+      'first name': _firstNameController.text.trim(),
+      'last name': _lastNameController.text.trim(),
+      'phone number': _phoneNumberController.text.trim(),
+      'email': _emailController.text.trim(),
+      'createdAt': Timestamp.now(),
+      'updatedAt': Timestamp.now(),
+      'userId': uid,
+      'isVerified': false,
+    });
+  }
 
   void _submitForm() async {
-  if (_formKey.currentState!.validate()) {
-    try {
-      // 1️⃣ Create user in Firebase Auth
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+    if (_formKey.currentState!.validate()) {
+      try {
+        // 1️⃣ Create user in Firebase Auth
+        UserCredential userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
+            );
 
-      final String uid = userCredential.user!.uid;
+        final String uid = userCredential.user!.uid;
 
-      // 2️⃣ Save user data in Firestore
-      await addUserDetails(uid);
+        // 2️⃣ Save user data in Firestore
+        await addUserDetails(uid);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created successfully')),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account created successfully')),
+        );
 
-      // 3️⃣ Navigate
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => Navigation()),
-      );
-    } on FirebaseAuthException catch (e) {
-      String message = 'Something went wrong';
+        // 3️⃣ Navigate
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => Navigation()),
+        );
+      } on FirebaseAuthException catch (e) {
+        String message = 'Something went wrong';
 
-      if (e.code == 'email-already-in-use') {
-        message = 'Email already exists';
-      } else if (e.code == 'weak-password') {
-        message = 'Password is too weak';
-      } else if (e.code == 'invalid-email') {
-        message = 'Invalid email address';
+        if (e.code == 'email-already-in-use') {
+          message = 'Email already exists';
+        } else if (e.code == 'weak-password') {
+          message = 'Password is too weak';
+        } else if (e.code == 'invalid-email') {
+          message = 'Invalid email address';
+        }
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      } catch (e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -223,12 +226,13 @@ class _SignUpPageState extends State<SignUpPage> {
                               color: Colors.white,
                             ),
                           ),
-                          SizedBox(height: 5),
+                          SizedBox(height: 4),
                           Text(
                             'Your journey starts here',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 20,
                               color: Colors.white70,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],

@@ -16,8 +16,6 @@ class PropertyDetailsPage extends StatefulWidget {
 class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   bool isFavorite = false;
   bool _isCheckingFavorite = true;
-  bool isAvailable = true;
-  bool isBookedByUser = false;
   final PropertyService _propertyService = PropertyService();
 
   // ✅ ALL POSSIBLE AMENITIES (must match AddApartmentPage)
@@ -33,19 +31,14 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   @override
   void initState() {
     super.initState();
-    _checkPropertyStatus();
+    _checkIfSaved();
   }
 
-  Future<void> _checkPropertyStatus() async {
+  Future<void> _checkIfSaved() async {
     bool saved = await _propertyService.isPropertySaved(widget.property.propertyId);
-    bool booked = await _propertyService.isPropertyBookedByUser(widget.property.propertyId);
-    bool available = widget.property.status == 'available';
-
     if (mounted) {
       setState(() {
         isFavorite = saved;
-        isBookedByUser = booked;
-        isAvailable = available && !booked;
         _isCheckingFavorite = false;
       });
     }
@@ -118,11 +111,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 ),
               ),
             ),
-            _BottomButtons(
-              property: widget.property,
-              isAvailable: isAvailable,
-              isBookedByUser: isBookedByUser,
-            ),
+            _BottomButtons(property: widget.property),
           ],
         ),
       ),
@@ -602,14 +591,8 @@ Widget _buildDescription(PropertyModel property) {
 // ============================================
 class _BottomButtons extends StatelessWidget {
   final PropertyModel property;
-  final bool isAvailable;
-  final bool isBookedByUser;
 
-  const _BottomButtons({
-    required this.property,
-    required this.isAvailable,
-    required this.isBookedByUser,
-  });
+  const _BottomButtons({required this.property});
 
   @override
   Widget build(BuildContext context) {
@@ -630,11 +613,18 @@ class _BottomButtons extends StatelessWidget {
         children: [
           Expanded(
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const MessagesPage()),
-                );
-              },
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ChatPage(
+                        userId: property.userId,
+                        name: property.userName,
+                        lastMessage:
+                            "Hello! I'm interested in the apartment '${property.title}'.",
+                      ),
+                    ),
+                  );
+                },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF276152),
                 foregroundColor: Colors.white,
@@ -653,18 +643,18 @@ class _BottomButtons extends StatelessWidget {
           const SizedBox(width: 12),
 Expanded(
   child: ElevatedButton(
-    onPressed: isAvailable ? () {
+    onPressed: () {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ReviewAndContinueScreen(
-            property: property,
+            property: property, // pass the BottomButtons' property field
           ),
         ),
       );
-    } : null,
+    },
     style: ElevatedButton.styleFrom(
-      backgroundColor: isAvailable ? const Color(0xFF276152) : Colors.grey,
+      backgroundColor: const Color(0xFF276152),
       foregroundColor: Colors.white,
       padding: const EdgeInsets.symmetric(vertical: 16),
       shape: RoundedRectangleBorder(
@@ -672,8 +662,8 @@ Expanded(
       ),
       elevation: 0,
     ),
-    child: Text(
-      isBookedByUser ? 'Already Booked' : (isAvailable ? 'Book Now' : 'Not Available'),
+    child: const Text(
+      'Book Now',
       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
     ),
   ),

@@ -575,13 +575,20 @@ class PropertyService {
       }
 
       // Check if already booked by someone else
-      bool isBookedBySomeone = await isPropertyBookedByAnyone(propertyId);
-      if (isBookedBySomeone) {
-        print('Property is already booked by someone else');
+      if (property.status != 'available') {
+        print('Property is not available - status: ${property.status}');
         return false;
       }
 
       print('✅ Property booking validation passed');
+
+      // Update property status to rented
+      await _firestore.collection('properties').doc(propertyId).update({
+        'status': 'rented',
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      print('✅ Property status updated to rented');
       return true;
     } catch (e) {
       print('❌ Error validating property booking: $e');
@@ -623,7 +630,10 @@ class PropertyService {
   Future<bool> isPropertyBookedByUser(String propertyId) async {
     try {
       User? currentUser = _auth.currentUser;
-      if (currentUser == null) return false;
+      if (currentUser == null) {
+        print('DEBUG: isPropertyBookedByUser - No current user');
+        return false;
+      }
 
       QuerySnapshot bookingSnapshot = await _firestore
           .collection('bookings')
@@ -631,6 +641,7 @@ class PropertyService {
           .where('propertyId', isEqualTo: propertyId)
           .get();
 
+      print('DEBUG: isPropertyBookedByUser - propertyId: $propertyId, userId: ${currentUser.uid}, found: ${bookingSnapshot.docs.length} bookings');
       return bookingSnapshot.docs.isNotEmpty;
     } catch (e) {
       print('Error checking if property is booked: $e');
@@ -641,12 +652,15 @@ class PropertyService {
   // ===== 19. CHECK IF PROPERTY IS BOOKED BY ANYONE =====
   Future<bool> isPropertyBookedByAnyone(String propertyId) async {
     try {
-      QuerySnapshot bookingSnapshot = await _firestore
-          .collection('bookings')
-          .where('propertyId', isEqualTo: propertyId)
-          .get();
+      PropertyModel? property = await getPropertyById(propertyId);
+      if (property == null) {
+        print('DEBUG: isPropertyBookedByAnyone - Property not found: $propertyId');
+        return false;
+      }
 
-      return bookingSnapshot.docs.isNotEmpty;
+      bool isBooked = property.status != 'available';
+      print('DEBUG: isPropertyBookedByAnyone - propertyId: $propertyId, status: ${property.status}, isBooked: $isBooked');
+      return isBooked;
     } catch (e) {
       print('Error checking if property is booked by anyone: $e');
       return false;

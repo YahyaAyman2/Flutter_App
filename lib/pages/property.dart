@@ -3,6 +3,10 @@ import 'package:sakkeny_app/pages/MessagesPage.dart';
 import 'package:sakkeny_app/pages/Payment%20Screens/review_and_continue_screen.dart';
 import 'package:sakkeny_app/models/cards.dart';
 import 'package:sakkeny_app/services/property_service.dart';
+import 'package:sakkeny_app/pages/Booked_Apartments.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sakkeny_app/pages/Startup%20pages/sign_in.dart';
+import 'dart:async';
 
 class PropertyDetailsPage extends StatefulWidget {
   final PropertyModel property;
@@ -13,13 +17,15 @@ class PropertyDetailsPage extends StatefulWidget {
   State<PropertyDetailsPage> createState() => _PropertyDetailsPageState();
 }
 
-class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
+class _PropertyDetailsPageState extends State<PropertyDetailsPage> with WidgetsBindingObserver {
   bool isFavorite = false;
   bool _isCheckingFavorite = true;
   bool _isCheckingBooking = true;
   bool _isBookedByCurrentUser = false;
   bool _isBookedBySomeoneElse = false;
   final PropertyService _propertyService = PropertyService();
+  StreamSubscription<User?>? _authStateSubscription;
+  User? _currentUser;
 
   // ✅ ALL POSSIBLE AMENITIES (must match AddApartmentPage)
   final List<String> allAmenities = [
@@ -34,8 +40,38 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    
+    // Set initial current user
+    _currentUser = FirebaseAuth.instance.currentUser;
+    
+    // Listen for auth state changes
+    _authStateSubscription = FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      print('DEBUG: Auth state changed, user: ${user?.uid}');
+      setState(() {
+        _currentUser = user;
+      });
+      // Refresh booking status when user changes
+      _checkBookingStatus();
+    });
+    
     _checkIfSaved();
     _checkBookingStatus();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _authStateSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh booking status when app resumes
+      _checkBookingStatus();
+    }
   }
 
   Future<void> _checkIfSaved() async {
@@ -48,9 +84,22 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     }
   }
 
+  Future<void> _refreshData() async {
+    await Future.wait([
+      _checkIfSaved(),
+      _checkBookingStatus(),
+    ]);
+  }
+
   Future<void> _checkBookingStatus() async {
+    setState(() {
+      _isCheckingBooking = true;
+    });
+    
     bool bookedByUser = await _propertyService.isPropertyBookedByUser(widget.property.propertyId);
     bool bookedByAnyone = await _propertyService.isPropertyBookedByAnyone(widget.property.propertyId);
+    
+    print('DEBUG: Property ${widget.property.propertyId} - bookedByUser: $bookedByUser, bookedByAnyone: $bookedByAnyone, currentUser: ${_currentUser?.uid}');
     
     if (mounted) {
       setState(() {
@@ -106,25 +155,28 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
           children: [
             _buildAppBar(context),
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildPropertyImage(widget.property),
-                    BuildPropertyHeader(
-                      property: widget.property,
-                      isFavorite: isFavorite,
-                      isLoading: _isCheckingFavorite,
-                      onFavoriteToggle: _toggleSave,
-                    ),
-                    _buildDescription(widget.property),
-                    _buildRoomDetails(widget.property),
-                    
-                    // ✅ NEW: Dynamic Amenities Section
-                    _buildAllAmenities(widget.property),
-                    
-                    const SizedBox(height: 20),
-                  ],
+              child: RefreshIndicator(
+                onRefresh: _refreshData,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPropertyImage(widget.property),
+                      BuildPropertyHeader(
+                        property: widget.property,
+                        isFavorite: isFavorite,
+                        isLoading: _isCheckingFavorite,
+                        onFavoriteToggle: _toggleSave,
+                      ),
+                      _buildDescription(widget.property),
+                      _buildRoomDetails(widget.property),
+                      
+                      // ✅ NEW: Dynamic Amenities Section
+                      _buildAllAmenities(widget.property),
+                      
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -133,6 +185,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
               isBookedByCurrentUser: _isBookedByCurrentUser,
               isBookedBySomeoneElse: _isBookedBySomeoneElse,
               isCheckingBooking: _isCheckingBooking,
+              currentUser: _currentUser,
             ),
           ],
         ),
@@ -616,12 +669,14 @@ class _BottomButtons extends StatelessWidget {
   final bool isBookedByCurrentUser;
   final bool isBookedBySomeoneElse;
   final bool isCheckingBooking;
+  final User? currentUser;
 
   const _BottomButtons({
     required this.property,
     required this.isBookedByCurrentUser,
     required this.isBookedBySomeoneElse,
     required this.isCheckingBooking,
+    required this.currentUser,
   });
 
   @override
@@ -675,20 +730,39 @@ Expanded(
   child: ElevatedButton(
     onPressed: isCheckingBooking
         ? null
-        : (isBookedByCurrentUser || isBookedBySomeoneElse)
-            ? null // Disable button if already booked
-            : () {
+        : isBookedByCurrentUser
+            ? () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ReviewAndContinueScreen(
-                      property: property,
-                    ),
+                    builder: (context) => const BookedApartmentsPage(),
                   ),
                 );
-              },
+              }
+            : isBookedBySomeoneElse
+                ? null
+                : currentUser == null
+                    ? () {
+                        // Navigate to sign in screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignIn(),
+                          ),
+                        );
+                      }
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ReviewAndContinueScreen(
+                              property: property,
+                            ),
+                          ),
+                        );
+                      },
     style: ElevatedButton.styleFrom(
-      backgroundColor: (isBookedByCurrentUser || isBookedBySomeoneElse)
+      backgroundColor: isBookedBySomeoneElse
           ? Colors.grey
           : const Color(0xFF276152),
       foregroundColor: Colors.white,
@@ -712,7 +786,9 @@ Expanded(
                 ? 'My Booking'
                 : isBookedBySomeoneElse
                     ? 'Already Booked'
-                    : 'Book Now',
+                    : currentUser == null
+                        ? 'Sign In to Book'
+                        : 'Book Now',
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
   ),

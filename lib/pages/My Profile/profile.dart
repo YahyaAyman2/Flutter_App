@@ -313,10 +313,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       text: "Logout",
                       iconColor: Colors.red,
                       textColor: Colors.red,
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        // Sign out from Firebase
+                        await fb_auth.FirebaseAuth.instance.signOut();
+                        
+                        // Navigate to sign in page
+                        Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(builder: (_) => SignIn()),
+                          (route) => false, // Remove all previous routes
                         );
                       },
                     ),

@@ -129,6 +129,8 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
         throw Exception('User not logged in');
       }
 
+      print('DEBUG: Creating booking for property ${widget.property.propertyId} by user ${user.uid}');
+
       // First, book the property (update status to rented)
       DateTime endDate = widget.moveInDate.add(Duration(days: widget.rentalMonths * 30)); // Approximate
       bool booked = await _propertyService.bookProperty(
@@ -140,6 +142,8 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
       if (!booked) {
         throw Exception('Failed to book property - it may no longer be available');
       }
+
+      print('DEBUG: Property validation passed, creating booking document');
 
       // Create booking document
       final bookingRef = await FirebaseFirestore.instance.collection('bookings').add({
@@ -183,6 +187,8 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
+      print('DEBUG: Booking document created with ID: ${bookingRef.id}');
+
       // Create payment record
       final paymentDetails = {
         'cardNumber': widget.cardNumber.replaceAll(' ', '').substring(widget.cardNumber.replaceAll(' ', '').length - 4),
@@ -202,6 +208,8 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
         paymentMethod: 'card',
         paymentDetails: paymentDetails,
       );
+
+      print('DEBUG: Payment record created');
 
       return true;
     } catch (e) {

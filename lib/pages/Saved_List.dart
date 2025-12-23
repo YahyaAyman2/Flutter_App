@@ -6,22 +6,6 @@ import 'package:sakkeny_app/services/property_service.dart';
 const Color primaryDarkGreen = Color(0xFF386B5D);
 const Color linkColor = Color(0xFF386B5D);
 
-// --- CUSTOM COLORS AND THEME EXTENSION ---
-class _CustomColors extends ThemeExtension<_CustomColors> {
-  final Color linkColor;
-  const _CustomColors({required this.linkColor});
-
-  @override
-  _CustomColors copyWith({Color? linkColor}) {
-    return _CustomColors(linkColor: linkColor ?? this.linkColor);
-  }
-
-  @override
-  _CustomColors lerp(_CustomColors? other, double t) {
-    if (other is! _CustomColors) return this;
-    return _CustomColors(linkColor: Color.lerp(linkColor, other.linkColor, t)!);
-  }
-}
 class SavedPage extends StatefulWidget {
   const SavedPage({super.key});
 

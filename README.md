@@ -1,4 +1,4 @@
-# sakkeny_app
+# Saknni
 
 A new Flutter project.
 

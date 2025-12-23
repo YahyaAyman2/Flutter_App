@@ -16,6 +16,8 @@ class PropertyDetailsPage extends StatefulWidget {
 class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   bool isFavorite = false;
   bool _isCheckingFavorite = true;
+  bool isAvailable = true;
+  bool isBookedByUser = false;
   final PropertyService _propertyService = PropertyService();
 
   // ✅ ALL POSSIBLE AMENITIES (must match AddApartmentPage)
@@ -31,14 +33,19 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   @override
   void initState() {
     super.initState();
-    _checkIfSaved();
+    _checkPropertyStatus();
   }
 
-  Future<void> _checkIfSaved() async {
+  Future<void> _checkPropertyStatus() async {
     bool saved = await _propertyService.isPropertySaved(widget.property.propertyId);
+    bool booked = await _propertyService.isPropertyBookedByUser(widget.property.propertyId);
+    bool available = widget.property.status == 'available';
+
     if (mounted) {
       setState(() {
         isFavorite = saved;
+        isBookedByUser = booked;
+        isAvailable = available && !booked;
         _isCheckingFavorite = false;
       });
     }
@@ -111,7 +118,11 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 ),
               ),
             ),
-            _BottomButtons(property: widget.property),
+            _BottomButtons(
+              property: widget.property,
+              isAvailable: isAvailable,
+              isBookedByUser: isBookedByUser,
+            ),
           ],
         ),
       ),
@@ -591,8 +602,14 @@ Widget _buildDescription(PropertyModel property) {
 // ============================================
 class _BottomButtons extends StatelessWidget {
   final PropertyModel property;
+  final bool isAvailable;
+  final bool isBookedByUser;
 
-  const _BottomButtons({required this.property});
+  const _BottomButtons({
+    required this.property,
+    required this.isAvailable,
+    required this.isBookedByUser,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -636,18 +653,18 @@ class _BottomButtons extends StatelessWidget {
           const SizedBox(width: 12),
 Expanded(
   child: ElevatedButton(
-    onPressed: () {
+    onPressed: isAvailable ? () {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ReviewAndContinueScreen(
-            property: property, // pass the BottomButtons' property field
+            property: property,
           ),
         ),
       );
-    },
+    } : null,
     style: ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFF276152),
+      backgroundColor: isAvailable ? const Color(0xFF276152) : Colors.grey,
       foregroundColor: Colors.white,
       padding: const EdgeInsets.symmetric(vertical: 16),
       shape: RoundedRectangleBorder(
@@ -655,8 +672,8 @@ Expanded(
       ),
       elevation: 0,
     ),
-    child: const Text(
-      'Book Now',
+    child: Text(
+      isBookedByUser ? 'Already Booked' : (isAvailable ? 'Book Now' : 'Not Available'),
       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
     ),
   ),

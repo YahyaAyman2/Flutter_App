@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sakkeny_app/models/cards.dart';
 import 'package:sakkeny_app/services/payment_service.dart';
+import 'package:sakkeny_app/services/property_service.dart';
 import 'booking_status_screen.dart';
 
 class RequestToBookScreen extends StatefulWidget {
@@ -43,6 +44,7 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
   bool _isProcessing = false;
   bool _agreedToTerms = false;
   final PaymentService _paymentService = PaymentService();
+  final PropertyService _propertyService = PropertyService();
 
   // ✅ Calculate base monthly rent
   double get baseMonthlyRent => widget.property.price;
@@ -127,6 +129,18 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
         throw Exception('User not logged in');
       }
 
+      // First, book the property (update status to rented)
+      DateTime endDate = widget.moveInDate.add(Duration(days: widget.rentalMonths * 30)); // Approximate
+      bool booked = await _propertyService.bookProperty(
+        widget.property.propertyId,
+        startDate: widget.moveInDate,
+        endDate: endDate,
+      );
+
+      if (!booked) {
+        throw Exception('Failed to book property - it may no longer be available');
+      }
+
       // Create booking document
       final bookingRef = await FirebaseFirestore.instance.collection('bookings').add({
         // Property info
@@ -161,8 +175,8 @@ class _RequestToBookScreenState extends State<RequestToBookScreen> {
         'cardHolder': widget.cardHolder,
         
         // Status
-        'status': 'pending', // pending, confirmed, cancelled, completed
-        'paymentStatus': 'pending', // pending, paid, refunded
+        'status': 'confirmed', // Changed from pending to confirmed since we booked it
+        'paymentStatus': 'paid', // Assuming payment succeeded
         
         // Timestamps
         'createdAt': FieldValue.serverTimestamp(),

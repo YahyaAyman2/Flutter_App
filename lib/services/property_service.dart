@@ -559,4 +559,98 @@ class PropertyService {
       return false;
     }
   }
+
+  // ===== 16. BOOK PROPERTY =====
+  Future<bool> bookProperty(String propertyId, {DateTime? startDate, DateTime? endDate}) async {
+    try {
+      User? currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        print('User not logged in');
+        return false;
+      }
+
+      // Check if property exists and is available
+      PropertyModel? property = await getPropertyById(propertyId);
+      if (property == null) {
+        print('Property not found');
+        return false;
+      }
+
+      if (property.status != 'available') {
+        print('Property is not available');
+        return false;
+      }
+
+      // Update property status to rented
+      await _firestore.collection('properties').doc(propertyId).update({
+        'status': 'rented',
+      });
+
+      // Create booking record
+      String bookingId = _firestore.collection('bookings').doc().id;
+      await _firestore.collection('bookings').doc(bookingId).set({
+        'bookingId': bookingId,
+        'propertyId': propertyId,
+        'userId': currentUser.uid,
+        'startDate': startDate?.toIso8601String(),
+        'endDate': endDate?.toIso8601String(),
+        'bookedAt': FieldValue.serverTimestamp(),
+      });
+
+      print('✅ Property booked successfully');
+      return true;
+    } catch (e) {
+      print('❌ Error booking property: $e');
+      return false;
+    }
+  }
+
+  // ===== 17. GET BOOKED PROPERTIES =====
+  Stream<List<PropertyModel>> getBookedProperties() {
+    User? currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      return Stream.value([]);
+    }
+
+    return _firestore
+        .collection('bookings')
+        .where('userId', isEqualTo: currentUser.uid)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          if (snapshot.docs.isEmpty) return [];
+
+          List<String> propertyIds = snapshot.docs
+              .map((doc) => doc.get('propertyId') as String)
+              .toList();
+
+          List<PropertyModel> properties = [];
+          for (String propertyId in propertyIds) {
+            PropertyModel? property = await getPropertyById(propertyId);
+            if (property != null) {
+              properties.add(property);
+            }
+          }
+
+          return properties;
+        });
+  }
+
+  // ===== 18. CHECK IF PROPERTY IS BOOKED BY CURRENT USER =====
+  Future<bool> isPropertyBookedByUser(String propertyId) async {
+    try {
+      User? currentUser = _auth.currentUser;
+      if (currentUser == null) return false;
+
+      QuerySnapshot bookingSnapshot = await _firestore
+          .collection('bookings')
+          .where('userId', isEqualTo: currentUser.uid)
+          .where('propertyId', isEqualTo: propertyId)
+          .get();
+
+      return bookingSnapshot.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking if property is booked: $e');
+      return false;
+    }
+  }
 }

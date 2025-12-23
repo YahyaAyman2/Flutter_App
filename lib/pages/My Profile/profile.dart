@@ -10,6 +10,7 @@ import 'package:sakkeny_app/pages/My Profile/Settings.dart';
 import 'package:sakkeny_app/pages/My Profile/NotificationsPage.dart';
 import 'package:sakkeny_app/pages/My Profile/SupportPage.dart';
 import 'package:sakkeny_app/pages/Startup pages/sign_in.dart';
+import 'package:sakkeny_app/pages/Saved_List.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -244,6 +245,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => const MyListingsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    buildMenuItem(
+                      icon: Icons.apartment_outlined,
+                      text: "Booked Apartments",
+                      iconColor: Colors.grey,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SavedPage(),
                           ),
                         );
                       },

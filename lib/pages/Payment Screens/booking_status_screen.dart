@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sakkeny_app/pages/Booked_Apartments.dart';
 
 class BookingStatusScreen extends StatelessWidget {
   final bool isSuccess;
@@ -83,13 +84,19 @@ class BookingStatusScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                 ],
 
-                // Action Buttons
+// Action Buttons
                 SizedBox(
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.popUntil(context, (route) => route.isFirst);
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const BookedApartmentsPage(),
+                        ),
+                        (route) => route.isFirst,
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF276152),
